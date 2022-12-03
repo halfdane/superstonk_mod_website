@@ -5,7 +5,8 @@ dev: setup
 	FLASK_APP=app FLASK_DEBUG=1 $(VENV)/flask run
 
 production: setup
-	$(VENV)/waitress-serve --call 'scad:create_app'
+	FLASK_APP=app FLASK_DEBUG=1 $(VENV)/flask run
+	#$(VENV)/waitress-serve --call 'scad:create_app'
 
 test: setup
 	$(VENV)/pytest -vv

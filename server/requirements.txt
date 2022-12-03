@@ -1,6 +1,7 @@
 Flask
 Flask-Cors
 flask-sock
+Flask-Discord
 
 pytest
 pytest-asyncio

@@ -11,14 +11,12 @@ export default {
     };
   },
   mounted() {
-    console.log('connecting to websocket');
     const connection = new WebSocket('ws://localhost:5000/random');
-    console.log('connected to websocket');
     connection.onmessage = (event) => {
-      // Vue data binding means you don't need any extra work to
-      // update your UI. Just set the `time` and Vue will automatically
-      // update the `<h2>`.
       this.number = event.data;
+    };
+    connection.onerror = (error) => {
+      console.error('There was an un-identified Web Socket error', error);
     };
   },
 };
