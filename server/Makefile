@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: dev production test clean setup
 dev: setup
-	FLASK_APP=modwebsite FLASK_DEBUG=1 $(VENV)/flask run
+	$(VENV)/flask --app "modwebsite:create_app" --debug run
 
 production: setup
 	FLASK_APP=modwebsite FLASK_DEBUG=1 $(VENV)/flask run
@@ -16,6 +16,6 @@ clean: clean-venv
 	find -iname "__pycache__" -delete
 	rm -rf .pytest_cache
 
-setup: clean venv
+setup: venv
 
 include Makefile.venv
