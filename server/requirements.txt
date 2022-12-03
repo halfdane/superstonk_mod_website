@@ -1,0 +1,10 @@
+Flask
+Flask-Cors
+flask-sock
+
+pytest
+pytest-asyncio
+freezegun
+coverage
+
+waitress
