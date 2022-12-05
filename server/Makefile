@@ -2,10 +2,10 @@ SHELL := /bin/bash
 
 .PHONY: dev production test clean setup
 dev: setup
-	$(VENV)/flask --app "modwebsite:create_app" --debug run
+	$(VENV)/quart --env development --app "modwebsite:create_app" run
 
 production: setup
-	FLASK_APP=modwebsite FLASK_DEBUG=1 $(VENV)/flask run
+	$(VENV)/quart --env live --app "modwebsite:create_app" run
 	#$(VENV)/waitress-serve --call 'scad:create_app'
 
 test: setup

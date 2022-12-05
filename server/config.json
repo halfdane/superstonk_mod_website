@@ -1,0 +1,21 @@
+{
+  "discord": {
+    "discord_client_id": 0,
+    "discord_client_secret": "a secret",
+    "discord_redirect_uri": "http://localhost:5000/callback/",
+    "discord_bot_token": "a secret"
+  },
+  "mod_guild": {
+    "guild_id": 0,
+    "accessing_roles": {
+      "goldfish": 0,
+      "limited": 0,
+      "general": 0,
+      "admin": 0
+    }
+  },
+  "server": {
+    "flask_secret_key": "something very secret ",
+    "allow_insecure_transport_for_oauth": true
+  }
+}
