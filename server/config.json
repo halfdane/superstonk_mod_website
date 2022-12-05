@@ -16,6 +16,6 @@
   },
   "server": {
     "flask_secret_key": "something very secret ",
-    "allow_insecure_transport_for_oauth": true
+    "allow_insecure_transport_for_oauth": "true"
   }
 }
