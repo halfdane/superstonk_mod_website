@@ -25,7 +25,7 @@
       v-model="leftDrawerOpen"
       show-if-above
       bordered
-      class="bg-grey-3"
+      :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3' "
     >
       <q-scroll-area class="fit">
         <q-list>

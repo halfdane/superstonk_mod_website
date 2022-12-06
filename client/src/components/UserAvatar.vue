@@ -10,7 +10,10 @@
       <div class="row no-wrap q-pa-md">
         <div class="column">
           <div class="text-h6 q-mb-md">Settings</div>
-          <q-toggle v-model="darkMode" label="Dark Mode" @click="toggleDarkMode"/>
+          <q-toggle v-model="darkMode"
+                    checked-icon="dark_mode"
+                    unchecked-icon="light_mode"
+                    @click="toggleDarkMode"/>
         </div>
 
         <q-separator vertical inset class="q-mx-lg"/>
@@ -44,21 +47,16 @@ export default {
     return {
       darkMode: false,
       loading: false,
-      user: null,
-      $q: useQuasar(),
+      user: null
     }
   },
+  setup () {
+    const $q = useQuasar();
+    $q.dark.set($q.cookies.get('darkmode') === 'true' );
+  },
   created() {
-    // watch the params of the route to fetch the data again
-    this.$watch(
-      () => this.$route.params,
-      () => {
-        this.fetchData()
-      },
-      // fetch the data when the view is created and the data is
-      // already being observed
-      {immediate: true}
-    )
+    this.fetchData();
+    this.darkMode = this.$q.dark.isActive;
   },
   methods: {
     fetchData() {
@@ -80,8 +78,8 @@ export default {
     },
     toggleDarkMode() {
       this.$q.dark.toggle();
-      this.darkMode = this.$q.dark.isActive
+      this.$q.cookies.set('darkmode', this.$q.dark.isActive);
     }
-  }
+  },
 };
 </script>
