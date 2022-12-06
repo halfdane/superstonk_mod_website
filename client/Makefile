@@ -2,14 +2,17 @@ SHELL := /bin/bash
 
 .PHONY: dev production test clean setup
 dev: setup
-	npm run serve
+	npm run dev
 
 production: setup
 	npm run build
 
-clean:
-	rm -rf dist
-	rm -rf node_modules
+test: setup
+	npm run test
 
-setup:
+clean:
+	rm node_modules
+
+setup: node_modules
 	npm install
+

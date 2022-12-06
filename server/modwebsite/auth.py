@@ -1,5 +1,5 @@
 from quart import Blueprint, redirect, url_for, current_app
-from quart_discord import DiscordOAuth2Session, Unauthorized
+from quart_discord import DiscordOAuth2Session, Unauthorized, requires_authorization
 
 
 class DiscordBlueprint(Blueprint):
@@ -60,6 +60,23 @@ async def callback():
 
     await welcome_user(user)
     return redirect(url_for("catch_all"))
+
+
+@discord_bp.route("/me/")
+@requires_authorization
+async def me():
+    user = await discord_bp.discord.fetch_user()
+    return {
+        'name': user.name,
+        'avatar_url': user.avatar_url
+    }
+
+@discord_bp.route("/you/")
+async def you():
+    return {
+        'name': 'halfdane',
+        'avatar_url': 'https://cdn.discordapp.com/avatars/407102579059851284/87e1b5c7313b41f60a52e650468404f5.png'
+    }
 
 
 @discord_bp.app_errorhandler(Unauthorized)
