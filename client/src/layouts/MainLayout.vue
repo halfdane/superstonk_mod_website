@@ -60,7 +60,7 @@ const linksList = [
     title: 'Analytics',
     caption: 'Pretty Graphs',
     icon: 'query_stats',
-    link: '/books'
+    link: '/analytics'
   },
   {
     title: 'ModQueue',

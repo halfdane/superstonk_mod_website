@@ -19,5 +19,8 @@
     "allow_insecure_transport_for_oauth": "true",
     "allow_origin": "http://localhost:8080",
     "allow_credentials": true
+  },
+  "database": {
+    "connection_url": "some username"
   }
 }

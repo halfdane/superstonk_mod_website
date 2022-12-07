@@ -2,6 +2,9 @@ Quart
 Quart-CORS
 Quart-Discord
 
+databases
+databases[asyncpg]
+
 pytest
 pytest-asyncio
 freezegun

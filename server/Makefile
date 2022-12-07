@@ -2,10 +2,10 @@ SHELL := /bin/bash
 
 .PHONY: dev production test clean setup
 dev: setup
-	$(VENV)/quart --env development --app "modwebsite:create_app" run
+	$(VENV)/quart --env development --app "modwebsite.app:create" run
 
 production: setup
-	$(VENV)/quart --env live --app "modwebsite:create_app" run
+	$(VENV)/quart --env live --app "modwebsite.app:create" run
 	#$(VENV)/waitress-serve --call 'scad:create_app'
 
 test: setup

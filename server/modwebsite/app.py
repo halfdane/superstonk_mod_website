@@ -1,17 +1,17 @@
-import json
 import os
 import random
 
-from quart import Quart, jsonify, websocket
+from quart import Quart, websocket
 from quart_cors import cors
 from quart_discord import requires_authorization
 
-from modwebsite import auth
+from modwebsite import auth, analytics
+from modwebsite.QuartDatabases import QuartDatabases
 from modwebsite.books import books_blueprint
 from modwebsite.config import config
 
 
-def create_app(test_config=None):
+def create(test_config=None):
     app = Quart(__name__, static_folder='../../client/dist')
     app.modwebsite_config = config(app.env)
 
@@ -24,6 +24,9 @@ def create_app(test_config=None):
 
     app.register_blueprint(auth.discord_bp)
     app.register_blueprint(books_blueprint)
+    app.register_blueprint(analytics.mod_activity_bp)
+
+    QuartDatabases(app)
 
     @app.websocket("/random")
     @requires_authorization
@@ -40,3 +43,4 @@ def create_app(test_config=None):
         return await app.send_static_file(path)
 
     return app
+

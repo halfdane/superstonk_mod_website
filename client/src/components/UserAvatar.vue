@@ -30,7 +30,7 @@
             label="Logout"
             push
             size="sm"
-            v-close-popup
+            @click="logout"
           />
         </div>
       </div>
@@ -62,7 +62,7 @@ export default {
     fetchData() {
       this.user = null
       this.loading = true
-      const path = 'http://localhost:5000/me/';
+      const path = 'http://localhost:5000/session/';
       axios.get(path, {withCredentials: true})
         .then((response) => response.data)
         .then((data) => {
@@ -79,7 +79,21 @@ export default {
     toggleDarkMode() {
       this.$q.dark.toggle();
       this.$q.cookies.set('darkmode', this.$q.dark.isActive);
-    }
+    },
+    logout() {
+      const path = 'http://localhost:5000/session/';
+      axios.delete(path, {withCredentials: true})
+        .then((response) => response.data)
+        .then((data) => {
+          this.user = data
+        })
+        .then(() => {
+          this.loading = false
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        })    }
   },
 };
 </script>
