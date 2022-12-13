@@ -61,6 +61,11 @@ const linksList = [
     caption: 'Pretty Graphs',
     icon: 'query_stats',
     link: '/analytics'
+  },  {
+    title: 'Other Analytics',
+    caption: 'Pretty Graphs',
+    icon: 'query_stats',
+    link: '/test'
   },
   {
     title: 'ModQueue',

@@ -14,5 +14,7 @@ clean:
 	rm node_modules
 
 setup: node_modules
+
+node_modules:
 	npm install
 
