@@ -58,14 +58,9 @@ const linksList = [
   },
   {
     title: 'Analytics',
-    caption: 'Pretty Graphs',
+    caption: 'Pretty Graphics',
     icon: 'query_stats',
     link: '/analytics'
-  },  {
-    title: 'Other Analytics',
-    caption: 'Pretty Graphs',
-    icon: 'query_stats',
-    link: '/test'
   },
   {
     title: 'ModQueue',

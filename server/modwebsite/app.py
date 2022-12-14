@@ -6,9 +6,9 @@ from quart_cors import cors
 from quart_discord import requires_authorization
 
 from modwebsite import auth, analytics
-from modwebsite.QuartDatabases import QuartDatabases
+from modwebsite.config.QuartDatabases import QuartDatabases
 from modwebsite.books import books_blueprint
-from modwebsite.config import config
+from modwebsite.config.configuration_reader import config
 
 
 def create(test_config=None):
@@ -27,14 +27,6 @@ def create(test_config=None):
     app.register_blueprint(analytics.mod_activity_bp)
 
     QuartDatabases(app)
-
-    @app.websocket("/random")
-    @requires_authorization
-    async def random_endpoint() -> None:
-        for i in range(5):
-            randint = random.randint(0, 999)
-            print(f"Sending random number {i}/{100}: {randint}")
-            await websocket.send(f"{randint}")
 
     @app.route('/', defaults={'path': 'index.html'})
     @app.route('/<path:path>')

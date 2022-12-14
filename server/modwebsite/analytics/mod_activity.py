@@ -1,7 +1,11 @@
 import json
 
-from quart import Blueprint, current_app, websocket
+from quart import Blueprint, current_app, request, session
 from quart_discord import requires_authorization
+
+from aiocache import cached, Cache
+from aiocache.serializers import PickleSerializer
+
 
 mod_activity_bp = Blueprint('mod_activity', __name__)
 
@@ -32,55 +36,30 @@ FORMER_MEMBERS = [
 ]
 
 
-
-
-@mod_activity_bp.websocket('/mod_activity')
+@mod_activity_bp.route('/mod_activity')
 @requires_authorization
-async def random_endpoint() -> None:
-    await websocket.send(json.dumps(await fetch_data()))
+async def mod_activity_endpoint():
+    combine_non_team = request.args.get("combineNonTeam") == "true"
+    combine_former_team = request.args.get("combineFormerTeam") == "true"
+    combine_current_team = request.args.get("combineCurrentTeam") == "true"
 
+    is_admin = session.get('admin', False)
+    if (combine_non_team or combine_former_team or combine_current_team) and not is_admin:
+        return "Only available for moderators", 403
 
-@mod_activity_bp.websocket("/mod_activity_egraph")
-@requires_authorization
-async def mod_activity_egraph() -> None:
-    # qs = urlparse.parse_qs(websocket.query_string.decode())
-    # if qs['admin'] == ['true']:
-    #     print('is an admin request')
-
-    await websocket.send(json.dumps(await fetch_egraph_data()))
-
-
-async def fetch_data():
-    mods, buckets = await mods_and_buckets_from_db()
-    series = []
-    for timestamp, day_bucket in buckets.items():
-        day_series = [timestamp]
-        day_series.extend([day_bucket[mod] for mod in mods])
-        series.append(day_series)
-
-    labels = ['date']
-    labels.extend(mods)
-
-    return {
-        "series": series,
-        "meta": {"labels": labels}
-    }
-
-
-async def fetch_egraph_data():
-    mods, series = await mods_and_buckets_from_db()
-    mod_buckets = {}
-    for day, day_bucket in series.items():
-        for mod, total in day_bucket.items():
-            day_entry = mod_buckets.get(mod, [])
-            day_entry.append([day, total])
-            mod_buckets[mod] = day_entry
+    mods, series = await mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team)
 
     # mod_buckets =
     # {
     #   mod1: [[day, total], [day, total], [day, total]]
     #   mod2: [[day, total], [day, total], [day, total]]
     # }
+    mod_buckets = {}
+    for day, day_bucket in series.items():
+        for mod, total in day_bucket.items():
+            day_entry = mod_buckets.get(mod, [])
+            day_entry.append([day, total])
+            mod_buckets[mod] = day_entry
 
 
     # return [{
@@ -90,12 +69,24 @@ async def fetch_egraph_data():
     return [{'name': mod, 'data': mod_bucket} for mod, mod_bucket in mod_buckets.items()]
 
 
-async def mods_and_buckets_from_db():
+async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team):
+    print(combine_non_team, combine_former_team, combine_current_team)
     async with current_app.db.connection() as connection:
         mod_rows = await connection.fetch_all("select distinct mod from modlog")
-        mods = [row.mod for row in mod_rows if row.mod not in NON_TEAM and row.mod not in FORMER_MEMBERS]
+
+        def combine_mod(mod):
+            return (combine_non_team and mod in NON_TEAM) or \
+                   (combine_former_team and mod in FORMER_MEMBERS) or \
+                   (combine_current_team and mod not in FORMER_MEMBERS and mod not in NON_TEAM)
+
+        mods = [row.mod for row in mod_rows if not combine_mod(row.mod)]
         mods = sorted(mods, key=str.casefold)
-        mods = ['FORMER-MODS'] + mods + ['NON-TEAM']
+        if combine_current_team:
+            mods = ['TEAM'] + mods
+        if combine_non_team:
+            mods = mods + ['NON-TEAM']
+        if combine_former_team:
+            mods = ['FORMER-MODS'] + mods
 
         db_rows = await connection.fetch_all("""
             select DATE_TRUNC('day', created_utc) as day, mod, count(*) as total from modlog
@@ -118,10 +109,12 @@ async def mods_and_buckets_from_db():
         for row in db_rows:
             timestamp_ = row.day.timestamp() * 1000
             day_bucket = buckets.get(timestamp_, {mod: 0 for mod in mods})
-            if row.mod in NON_TEAM:
+            if combine_non_team and row.mod in NON_TEAM:
                 mod = 'NON-TEAM'
-            elif row.mod in FORMER_MEMBERS:
+            elif combine_former_team and row.mod in FORMER_MEMBERS:
                 mod = 'FORMER-MODS'
+            elif combine_current_team and row.mod not in NON_TEAM and row.mod not in FORMER_MEMBERS:
+                mod = 'TEAM'
             else:
                 mod = row.mod
             day_bucket[mod] += row.total

@@ -1,108 +1,129 @@
-<style scoped>
-:deep(.highlight){
-  border: 2px solid grey;
-}
-:deep(.highlight) b{
-  font-weight: bold;
-}
-:deep(b) {
-  font-weight: normal;
-}
-</style>
-
+<template>
+  <vue-echarts :option='option' loading="true" style='height: 80vh; width: 100%' ref='chart'/>
+  <q-form class="q-gutter-md">
+    <q-toggle v-model="combineNonTeam" label="Combine non-team accounts">
+      <q-tooltip>Non-team accounts: bots, reddit's anti-evil team etc.</q-tooltip>
+    </q-toggle>
+    <q-toggle v-model="combineFormerTeam" label="Combine accounts of former team members">
+      <q-tooltip>Humans that used to be bots but aren't anymore</q-tooltip>
+    </q-toggle>
+    <q-toggle v-model="combineCurrentTeam" label="Combine accounts of current team members">
+      <q-tooltip>Humans that are currently moderators</q-tooltip>
+    </q-toggle>
+  </q-form>
+</template>
 
 <script>
-import Dygraphs from 'dygraphs';
-import {h} from 'vue';
+import {VueEcharts} from 'vue3-echarts';
+import {ref} from 'vue';
+import axios from 'axios';
 
 export default {
-  render() {
-    return [
-      h('div', {id: 'vue-dygraphs' + this.randomId, style: this.graphStyle}),
-      h('div', {id: 'vue-dygraphs-labels' + this.randomId}),
-    ]
+  components: {
+    VueEcharts,
+  },
+  setup() {
+    const combineNonTeam = ref(true);
+    const combineFormerTeam = ref(true);
+    const combineCurrentTeam = ref(true);
+
+    return {
+      combineNonTeam,
+      combineFormerTeam,
+      combineCurrentTeam,
+    }
   },
   data() {
     return {
-      graph: null,
-      graphData: [],
-      labels: [],
-      randomId: Math.floor(Math.random() * 6) + 1,
-      waitingForUpdate: false,
+      graph: null
     }
   },
-  props: {
-    graphOptions: {stackedGraph: true},
-    graphStyle: {
-      type: Object,
-      default() {
-        return {
-          width: '100%',
-          height: '500px',
-        }
-      },
+  watch: {
+    combineNonTeam() { this.getData(); },
+    combineFormerTeam() { this.getData(); },
+    combineCurrentTeam() { this.getData(); },
+  },
+  methods: {
+    getData() {
+      this.$refs.chart.chart.showLoading();
+      const defaultSeriesOptions = {type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {}};
+      const path = `http://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`;
+      axios.get(path, {withCredentials: true})
+        .then((response) => response.data)
+        .then((data) => {
+          this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
+          this.$refs.chart.chart.hideLoading();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        })
     },
   },
   mounted() {
-    const connection = new WebSocket('ws://localhost:5000/mod_activity');
-    connection.onmessage = (event) => {
-      const result = JSON.parse(event.data);
-      result.series.forEach(day_array => day_array[0] = new Date(day_array[0]))
-
-      this.graphData = result.series
-      this.labels = result.meta.labels;
-      this.renderGraph();
-    };
-    connection.onerror = (error) => {
-      console.error('There was an un-identified Web Socket error', error);
-    };
+    this.getData();
   },
-  methods: {
-    renderGraph() {
-      const now = new Date();
-      const lastWeek = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-
-      this.$data.graph = new Dygraphs(
-        'vue-dygraphs' + this.randomId,
-        this.graphData,
-        {
-          width: 480,
-          height: 320,
-          labels: this.labels,
-          stackedGraph: true,
-
-          highlightCircleSize: 2,
-          strokeWidth: 1,
-          strokeBorderWidth: null,
-
-          showRangeSelector: true,
-          dateWindow: [lastWeek, now],
-
-          labelsDiv: 'vue-dygraphs-labels' + this.randomId,
-
-          highlightSeriesOpts: {
-            strokeWidth: 3,
-            strokeBorderWidth: 1,
-            highlightCircleSize: 5
-          }
-        });
-      var onclick = () => {
-        if (this.$data.graph.isSeriesLocked()) {
-          this.$data.graph.clearSelection();
-        } else {
-          this.$data.graph.setSelection(this.$data.graph.getSelection(), this.$data.graph.getHighlightSeries(), true);
+  computed: {
+    option() {
+      if (this.graph) {
+        return  {
+          darkMode: true,
+          legend: {
+            orient: 'vertical',
+            right: 10,
+            top: 'center',
+            type: 'scroll',
+            icon: 'rect'
+          },
+          tooltip: {
+            trigger: 'axis',
+            formatter: function (params) {
+              let string = params
+                .filter(param => param.value[1] !== 0)
+                .map(param => `${param.marker} ${param.seriesName} ${param.value[1]}`)
+                .join('<br />');
+              return string;
+            },
+            position: function (pt) {
+              return [pt[0], '0%'];
+            }
+          },
+          title: {
+            left: 'center',
+            text: 'Mod Activity'
+          },
+          toolbox: {
+            feature: {
+              dataZoom: {
+                yAxisIndex: 'none'
+              },
+              restore: {},
+              saveAsImage: {}
+            }
+          },
+          xAxis: {
+            type: 'time',
+            boundaryGap: false
+          },
+          yAxis: {
+            type: 'value',
+            boundaryGap: false
+          },
+          dataZoom: [
+            {
+              xAxisIndex: [0],
+              type: 'slider',
+              start: 80,
+              end: 100,
+              moveHandleSize: 20
+            }
+          ],
+          series: this.graph
         }
-      };
-      this.$data.graph.updateOptions({clickCallback: onclick}, true);
-      this.$data.graph.setSelection(false, 's005');
-
-
-    },
-    updateGraph() {
-      // Merge data and options
-      let obj = Object.assign({}, this.graphOptions, {file: this.graphData})
-      this.$data.graph.updateOptions(obj)
-    },
-  },
+      } else {
+        return null;
+      }
+    }
+  }
 }
 </script>

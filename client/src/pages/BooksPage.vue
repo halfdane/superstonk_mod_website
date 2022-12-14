@@ -4,7 +4,6 @@
     <hr>
     <br><br>
     <alert-success :message="message"></alert-success>
-    <random-number></random-number>
     <q-btn color="primary" label="Add Book" @click="edit_dialog = true"/>
 
     <br><br>
@@ -84,7 +83,6 @@
 
 <script>
 import AlertSuccess from '../components/AlertSuccess';
-import RandomNumber from '../components/RandomNumber';
 import {ref} from 'vue';
 
 export default {
@@ -111,7 +109,6 @@ export default {
     };
   },
   components: {
-    RandomNumber,
     AlertSuccess
   },
   methods: {

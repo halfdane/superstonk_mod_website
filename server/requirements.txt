@@ -5,6 +5,8 @@ Quart-Discord
 databases
 databases[asyncpg]
 
+aiocache
+
 pytest
 pytest-asyncio
 freezegun
