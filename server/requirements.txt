@@ -2,10 +2,8 @@ Quart
 Quart-CORS
 Quart-Discord
 
-databases
-databases[asyncpg]
-
 aiocache
+aiosqlite
 
 pytest
 pytest-asyncio

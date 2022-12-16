@@ -2,6 +2,9 @@
 node_modules
 client/dist
 
+server/modlog.db
+modlog.csv
+
 server/config.*.json
 
 # local env files

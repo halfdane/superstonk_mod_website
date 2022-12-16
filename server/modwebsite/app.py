@@ -1,14 +1,15 @@
 import os
 import random
 
+import databases
 from quart import Quart, websocket
 from quart_cors import cors
 from quart_discord import requires_authorization
 
 from modwebsite import auth, analytics
-from modwebsite.config.QuartDatabases import QuartDatabases
 from modwebsite.books import books_blueprint
 from modwebsite.config.configuration_reader import config
+from modwebsite.config.database import Database
 
 
 def create(test_config=None):
@@ -22,11 +23,12 @@ def create(test_config=None):
     app.secret_key = app.modwebsite_config['server']['flask_secret_key'].encode()
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = app.modwebsite_config['server']['allow_insecure_transport_for_oauth']
 
+    Database(app)
+
     app.register_blueprint(auth.discord_bp)
     app.register_blueprint(books_blueprint)
     app.register_blueprint(analytics.mod_activity_bp)
 
-    QuartDatabases(app)
 
     @app.route('/', defaults={'path': 'index.html'})
     @app.route('/<path:path>')

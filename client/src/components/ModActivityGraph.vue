@@ -58,6 +58,7 @@ export default {
         .then((response) => response.data)
         .then((data) => {
           this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
+          console.log(this.graph)
           this.$refs.chart.chart.hideLoading()
         })
         .catch((error) => {
