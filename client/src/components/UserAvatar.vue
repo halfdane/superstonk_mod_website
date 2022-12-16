@@ -39,11 +39,11 @@
 </template>
 
 <script>
-import axios from 'axios';
-import { useQuasar } from 'quasar';
+import axios from 'axios'
+import { useQuasar } from 'quasar'
 
 export default {
-  data() {
+  data () {
     return {
       darkMode: false,
       loading: false,
@@ -51,19 +51,19 @@ export default {
     }
   },
   setup () {
-    const $q = useQuasar();
-    $q.dark.set($q.cookies.get('darkmode') === 'true' );
+    const $q = useQuasar()
+    $q.dark.set($q.cookies.get('darkmode') === 'true')
   },
-  created() {
-    this.fetchData();
-    this.darkMode = this.$q.dark.isActive;
+  created () {
+    this.fetchData()
+    this.darkMode = this.$q.dark.isActive
   },
   methods: {
-    fetchData() {
+    fetchData () {
       this.user = null
       this.loading = true
-      const path = 'http://localhost:5000/session/';
-      axios.get(path, {withCredentials: true})
+      const path = 'http://localhost:5000/session/'
+      axios.get(path, { withCredentials: true })
         .then((response) => response.data)
         .then((data) => {
           this.user = data
@@ -73,16 +73,16 @@ export default {
         })
         .catch((error) => {
           // eslint-disable-next-line
-          console.error(error);
+          console.error(error)
         })
     },
-    toggleDarkMode() {
-      this.$q.dark.toggle();
-      this.$q.cookies.set('darkmode', this.$q.dark.isActive);
+    toggleDarkMode () {
+      this.$q.dark.toggle()
+      this.$q.cookies.set('darkmode', this.$q.dark.isActive)
     },
-    logout() {
-      const path = 'http://localhost:5000/session/';
-      axios.delete(path, {withCredentials: true})
+    logout () {
+      const path = 'http://localhost:5000/session/'
+      axios.delete(path, { withCredentials: true })
         .then((response) => response.data)
         .then((data) => {
           this.user = data
@@ -92,8 +92,9 @@ export default {
         })
         .catch((error) => {
           // eslint-disable-next-line
-          console.error(error);
-        })    }
-  },
-};
+          console.error(error)
+        })
+    }
+  }
+}
 </script>

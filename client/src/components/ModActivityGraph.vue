@@ -14,59 +14,65 @@
 </template>
 
 <script>
-import {VueEcharts} from 'vue3-echarts';
-import {ref} from 'vue';
-import axios from 'axios';
+import { VueEcharts } from 'vue3-echarts'
+import { ref } from 'vue'
+import axios from 'axios'
 
 export default {
   components: {
-    VueEcharts,
+    VueEcharts
   },
-  setup() {
-    const combineNonTeam = ref(true);
-    const combineFormerTeam = ref(true);
-    const combineCurrentTeam = ref(true);
+  setup () {
+    const combineNonTeam = ref(true)
+    const combineFormerTeam = ref(true)
+    const combineCurrentTeam = ref(true)
 
     return {
       combineNonTeam,
       combineFormerTeam,
-      combineCurrentTeam,
+      combineCurrentTeam
     }
   },
-  data() {
+  data () {
     return {
       graph: null
     }
   },
   watch: {
-    combineNonTeam() { this.getData(); },
-    combineFormerTeam() { this.getData(); },
-    combineCurrentTeam() { this.getData(); },
+    combineNonTeam () {
+      this.getData()
+    },
+    combineFormerTeam () {
+      this.getData()
+    },
+    combineCurrentTeam () {
+      this.getData()
+    }
   },
   methods: {
-    getData() {
-      this.$refs.chart.chart.showLoading();
-      const defaultSeriesOptions = {type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {}};
-      const path = `http://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`;
-      axios.get(path, {withCredentials: true})
+    getData () {
+      this.$refs.chart.chart.showLoading()
+      const defaultSeriesOptions = { type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {} }
+      const path = `http://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
+      axios.get(path, { withCredentials: true })
         .then((response) => response.data)
         .then((data) => {
           this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
-          this.$refs.chart.chart.hideLoading();
+          this.$refs.chart.chart.hideLoading()
         })
         .catch((error) => {
           // eslint-disable-next-line
-          console.error(error);
+          console.error(error)
         })
-    },
+    }
   },
-  mounted() {
-    this.getData();
+  mounted () {
+    this.getData()
   },
   computed: {
-    option() {
+    option () {
       if (this.graph) {
-        return  {
+        return {
           darkMode: true,
           legend: {
             orient: 'vertical',
@@ -78,14 +84,14 @@ export default {
           tooltip: {
             trigger: 'axis',
             formatter: function (params) {
-              let string = params
+              const string = params
                 .filter(param => param.value[1] !== 0)
                 .map(param => `${param.marker} ${param.seriesName} ${param.value[1]}`)
-                .join('<br />');
-              return string;
+                .join('<br />')
+              return string
             },
             position: function (pt) {
-              return [pt[0], '0%'];
+              return [pt[0], '0%']
             }
           },
           title: {
@@ -121,7 +127,7 @@ export default {
           series: this.graph
         }
       } else {
-        return null;
+        return null
       }
     }
   }

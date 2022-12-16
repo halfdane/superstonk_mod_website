@@ -10,10 +10,10 @@
 <script>
 export default {
   props: ['message'],
-  data(){
+  data () {
     return {
-      show_banner: this.message !== '',
+      show_banner: this.message !== ''
     }
   }
-};
+}
 </script>
