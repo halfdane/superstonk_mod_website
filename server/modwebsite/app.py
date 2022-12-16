@@ -1,8 +1,8 @@
+import logging
 import os
-import random
 
-import databases
-from quart import Quart, websocket
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from quart import Quart
 from quart_cors import cors
 from quart_discord import requires_authorization
 
@@ -13,6 +13,11 @@ from modwebsite.config.database import Database
 
 
 def create(test_config=None):
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(name)s]: %(message)s'
+    )
+
     app = Quart(__name__, static_folder='../../client/dist')
     app.modwebsite_config = config(app.env)
 
@@ -25,9 +30,21 @@ def create(test_config=None):
 
     Database(app)
 
+    @app.before_serving
+    async def register_scheduler():
+        print("Running app.before_serving")
+        scheduler_timezone = {}
+        scheduler = AsyncIOScheduler(**scheduler_timezone)
+        scheduler.start()
+        app.scheduler = scheduler
+
     app.register_blueprint(auth.discord_bp)
     app.register_blueprint(books_blueprint)
     app.register_blueprint(analytics.mod_activity_bp)
+
+    # FUNDAMENTAL COMPONENTS WITHOUT DEPENDENCIES
+    logging.getLogger('apscheduler').setLevel(logging.WARN)
+
 
 
     @app.route('/', defaults={'path': 'index.html'})

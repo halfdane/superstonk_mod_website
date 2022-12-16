@@ -16,7 +16,6 @@
 <script>
 import { VueEcharts } from 'vue3-echarts'
 import { ref } from 'vue'
-import axios from 'axios'
 
 export default {
   components: {
@@ -35,7 +34,8 @@ export default {
   },
   data () {
     return {
-      graph: null
+      graph: null,
+      connection: null
     }
   },
   watch: {
@@ -51,20 +51,24 @@ export default {
   },
   methods: {
     getData () {
+      if (this.connection) {
+        this.connection.close()
+      }
       this.$refs.chart.chart.showLoading()
       const defaultSeriesOptions = { type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {} }
-      const path = `http://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
-      axios.get(path, { withCredentials: true })
-        .then((response) => response.data)
-        .then((data) => {
-          this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
-          console.log(this.graph)
-          this.$refs.chart.chart.hideLoading()
-        })
-        .catch((error) => {
-          // eslint-disable-next-line
-          console.error(error)
-        })
+      const path = `ws://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
+
+      this.connection = new WebSocket(path)
+      this.connection.onmessage = (event) => {
+        this.$refs.chart.chart.showLoading()
+        const data = JSON.parse(event.data)
+        this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
+        console.log(this.graph)
+        this.$refs.chart.chart.hideLoading()
+      }
+      this.connection.onerror = (error) => {
+        console.error('There was an un-identified Web Socket error', error)
+      }
     }
   },
   mounted () {
@@ -72,63 +76,59 @@ export default {
   },
   computed: {
     option () {
-      if (this.graph) {
-        return {
-          darkMode: true,
-          legend: {
-            orient: 'vertical',
-            right: 10,
-            top: 'center',
-            type: 'scroll',
-            icon: 'rect'
+      return {
+        darkMode: true,
+        legend: {
+          orient: 'vertical',
+          right: 10,
+          top: 'center',
+          type: 'scroll',
+          icon: 'rect'
+        },
+        tooltip: {
+          trigger: 'axis',
+          formatter: function (params) {
+            const string = params
+              .filter(param => param.value[1] !== 0)
+              .map(param => `${param.marker} ${param.seriesName} ${param.value[1]}`)
+              .join('<br />')
+            return `${params[0].value[0]}<br />${string}`
           },
-          tooltip: {
-            trigger: 'axis',
-            formatter: function (params) {
-              const string = params
-                .filter(param => param.value[1] !== 0)
-                .map(param => `${param.marker} ${param.seriesName} ${param.value[1]}`)
-                .join('<br />')
-              return string
+          position: function (pt) {
+            return [pt[0], '0%']
+          }
+        },
+        title: {
+          left: 'center',
+          text: 'Mod Activity'
+        },
+        toolbox: {
+          feature: {
+            dataZoom: {
+              yAxisIndex: 'none'
             },
-            position: function (pt) {
-              return [pt[0], '0%']
-            }
-          },
-          title: {
-            left: 'center',
-            text: 'Mod Activity'
-          },
-          toolbox: {
-            feature: {
-              dataZoom: {
-                yAxisIndex: 'none'
-              },
-              restore: {},
-              saveAsImage: {}
-            }
-          },
-          xAxis: {
-            type: 'time',
-            boundaryGap: false
-          },
-          yAxis: {
-            type: 'value',
-            boundaryGap: false
-          },
-          dataZoom: [
-            {
-              xAxisIndex: [0],
-              type: 'slider',
-              start: 80,
-              end: 100,
-              moveHandleSize: 20
-            }
-          ],
-          series: this.graph
-        }
-      } else {
-        return null
+            restore: {},
+            saveAsImage: {}
+          }
+        },
+        xAxis: {
+          type: 'time',
+          boundaryGap: false
+        },
+        yAxis: {
+          type: 'value',
+          boundaryGap: false
+        },
+        dataZoom: [
+          {
+            xAxisIndex: [0],
+            type: 'slider',
+            start: 80,
+            end: 100,
+            moveHandleSize: 20
+          }
+        ],
+        series: this.graph
       }
     }
   }

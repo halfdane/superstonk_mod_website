@@ -1,12 +1,16 @@
+import asyncio
 import json
+import urllib
+from datetime import datetime
 
-from quart import Blueprint, current_app, request, session, g
+from quart import Blueprint, current_app, request, session, websocket
 from quart_discord import requires_authorization
 
 from aiocache import cached, Cache
 from aiocache.serializers import PickleSerializer
 
 from modwebsite.analytics.modlog_repository import fetch_modlog, fetch_mods
+from modwebsite.analytics.websockets_broadcaster import WebsocketsBroadcaster
 
 NON_TEAM = [
     'Anti-Evil Operations',
@@ -34,32 +38,37 @@ FORMER_MEMBERS = [
     'sharkbaitlol'
 ]
 
-app = current_app
+
 mod_activity_bp = Blueprint('mod_activity', __name__)
-
-#
-#
-# @mod_activity_bp.websocket('/mod_activity')
-# @requires_authorization
-# async def mod_activity_endpoint():
-#     qs = urllib.parse.parse_qs(websocket.query_string.decode())
-#
-#     combine_non_team = qs.get("combineNonTeam", "true") == "true"
-#     combine_former_team = qs.get("combineFormerTeam", "true") == "true"
-#     combine_current_team = qs.get("combineCurrentTeam", "true") == "true"
+broker = WebsocketsBroadcaster()
 
 
-@mod_activity_bp.route('/mod_activity')
+@mod_activity_bp.before_app_serving
+async def before():
+    current_app.scheduler.add_job(broker.publish, "cron", second="0-59/10", next_run_time=datetime.now())
+
+
+@mod_activity_bp.websocket('/mod_activity')
 @requires_authorization
 async def mod_activity_endpoint():
-    combine_non_team = request.args.get("combineNonTeam") == "true"
-    combine_former_team = request.args.get("combineFormerTeam") == "true"
-    combine_current_team = request.args.get("combineCurrentTeam") == "true"
+    qs = urllib.parse.parse_qs(websocket.query_string.decode())
+
+    combine_non_team = qs.get("combineNonTeam", "true") == ["true"]
+    combine_former_team = qs.get("combineFormerTeam", "true") == ["true"]
+    combine_current_team = qs.get("combineCurrentTeam", "true") == ["true"]
 
     is_admin = session.get('admin', False)
     if (combine_non_team or combine_former_team or combine_current_team) and not is_admin:
         return "Only available for moderators", 403
 
+    try:
+        async for message in broker.subscribe(publish_mod_activity, combine_non_team, combine_former_team, combine_current_team):
+            await websocket.send(message)
+    finally:
+        print("Connection is closed")
+
+
+async def publish_mod_activity(combine_non_team, combine_former_team, combine_current_team):
     mods, series = await mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team)
 
     # {
@@ -78,8 +87,7 @@ async def mod_activity_endpoint():
     #     data: [[day, total], [day, total], [day, total]]
     # }];
     mod_activity = [{'name': mod, 'data': mod_bucket} for mod, mod_bucket in mod_buckets.items()]
-    print("done")
-    return mod_activity
+    return json.dumps(mod_activity)
 
 
 async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team):
