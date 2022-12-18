@@ -8,10 +8,10 @@
   "mod_guild": {
     "guild_id": 0,
     "accessing_roles": {
-      "goldfish": 0,
-      "limited": 0,
-      "general": 0,
-      "admin": 0
+      "Goldfishie": 0,
+      "Limited": 0,
+      "General": 0,
+      "Admin": 0
     }
   },
   "server": {
