@@ -5,8 +5,6 @@ Quart-Discord
 aiocache
 aiosqlite
 
-apscheduler
-
 pytest
 pytest-asyncio
 freezegun
