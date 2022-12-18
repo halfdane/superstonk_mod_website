@@ -35,7 +35,8 @@ export default {
   data () {
     return {
       graph: null,
-      connection: null
+      connection: null,
+      defaultSeriesOptions: { type: 'line', stack: 'Total', smooth: true, symbol: 'none', areaStyle: {} }
     }
   },
   watch: {
@@ -51,28 +52,52 @@ export default {
   },
   methods: {
     getData () {
-      if (this.connection) {
-        this.connection.close()
+      const params = {
+        clientId: this.clientId,
+        combineNonTeam: this.combineNonTeam,
+        combineFormerTeam: this.combineFormerTeam,
+        combineCurrentTeam: this.combineCurrentTeam
       }
+      console.log('requesting data: ', params)
+      this.connection.send(JSON.stringify(params))
       this.$refs.chart.chart.showLoading()
-      const defaultSeriesOptions = { type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {} }
-      const path = `ws://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
-
-      this.connection = new WebSocket(path)
-      this.connection.onmessage = (event) => {
-        this.$refs.chart.chart.showLoading()
-        const data = JSON.parse(event.data)
-        this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
-        console.log(this.graph)
-        this.$refs.chart.chart.hideLoading()
-      }
-      this.connection.onerror = (error) => {
-        console.error('There was an un-identified Web Socket error', error)
-      }
+      this.graph = null
     }
   },
   mounted () {
-    this.getData()
+    this.$refs.chart.chart.showLoading()
+    const path = 'ws://localhost:5000/mod_activity'
+
+    this.connection = new WebSocket(path)
+    this.connection.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      this.clientId = data.client_id
+      console.log('got a clientId: ', this.clientId)
+
+      this.connection.onmessage = (event) => {
+        this.$refs.chart.chart.showLoading()
+        if (this.graph) {
+          this.graph.splice(0)
+        } else {
+          this.graph = []
+        }
+        const response = JSON.parse(event.data)
+        response.data
+          .map(singleModSeries => Object.assign({}, this.defaultSeriesOptions, singleModSeries))
+          .forEach(entry => this.graph.push(entry))
+        console.log('updated graph: ', this.graph)
+        this.$refs.chart.chart.hideLoading()
+      }
+    }
+    this.connection.onerror = (error) => {
+      console.error('There was an un-identified Web Socket error', error)
+    }
+    this.connection.onopen = this.getData
+  },
+  unmounted () {
+    if (this.connection) {
+      this.connection.close()
+    }
   },
   computed: {
     option () {
