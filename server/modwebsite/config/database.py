@@ -34,4 +34,4 @@ class Database:
             print(f"database connection stored: {self.app.sqlite_db}")
 
     async def _after_serving(self) -> None:
-        await g.sqlite_db.close()
+        await self.app.sqlite_db.close()

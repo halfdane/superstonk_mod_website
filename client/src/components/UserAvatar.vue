@@ -1,8 +1,8 @@
 <template>
-  <q-avatar color="white" text-color="black" v-if="loading" class="loading">M</q-avatar>
+  <q-avatar color="white" text-color="black" v-if="!user" class="loading">M</q-avatar>
 
-  <q-btn round>
-    <q-avatar v-if="user" size="40px" color="white" text-color="black">
+  <q-btn round v-if="user">
+    <q-avatar size="40px" color="white" text-color="black">
       <img :src="user.avatar_url" :alt="'avatar of ' + user.name">
     </q-avatar>
 
@@ -11,9 +11,14 @@
         <div class="column">
           <div class="text-h6 q-mb-md">Settings</div>
           <q-toggle v-model="darkMode"
-                    checked-icon="dark_mode"
-                    unchecked-icon="light_mode"
-                    @click="toggleDarkMode"/>
+                    unchecked-icon="dark_mode"
+                    checked-icon="light_mode"
+                    @click="toggleDarkMode"
+                    :label="'Switch to ' + (darkMode?'light':'dark') + ' mode'"/>
+          <q-toggle v-if="user.is_dev"
+                    v-model="user.is_admin"
+                    @click="toggleAdminMode"
+                    :label="'Switch to ' + (user.is_admin?'user':'admin') + ' mode'"/>
         </div>
 
         <q-separator vertical inset class="q-mx-lg"/>
@@ -23,7 +28,12 @@
             <img :src="user.avatar_url" :alt="'avatar of ' + user.name">
           </q-avatar>
 
-          <div class="text-subtitle1 q-mt-md q-mb-xs">{{ user.name }}</div>
+          <div class="text-h6 q-mt-md q-mb-xs">{{ user.name }}</div>
+          <div class="text-body1 q-mt-md q-mb-xs">Superstonk {{ user.role }} Moderator</div>
+          <div class="text-caption q-mt-md q-mb-xs">
+            <span v-if="user.is_admin">Admin</span>
+            <span v-if="user.is_dev">Dev</span>
+          </div>
 
           <q-btn
             color="primary"
@@ -70,6 +80,18 @@ export default {
         })
         .then(() => {
           this.loading = false
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error)
+        })
+    },
+    toggleAdminMode () {
+      const path = 'http://localhost:5000/session/'
+      axios.post(path, { admin: this.user.is_admin }, { withCredentials: true })
+        .then((response) => response.data)
+        .then((data) => {
+          this.user = data
         })
         .catch((error) => {
           // eslint-disable-next-line

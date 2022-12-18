@@ -1,4 +1,6 @@
-from quart import Blueprint, redirect, url_for, current_app, session
+import logging
+
+from quart import Blueprint, redirect, url_for, current_app, session, request
 from quart_discord import DiscordOAuth2Session, Unauthorized, requires_authorization
 
 
@@ -18,6 +20,7 @@ class DiscordBlueprint(Blueprint):
 
 
 discord_bp = DiscordBlueprint('discord_blueprint', __name__)
+logger = logging.getLogger(__name__)
 
 
 async def fetch_roles_from_api(guild_id):
@@ -29,7 +32,7 @@ async def fetch_roles_from_api(guild_id):
 async def welcome_user(user):
     dm_channel = await discord_bp.discord.bot_request("/users/@me/channels", "POST", json={"recipient_id": user.id})
     return await discord_bp.discord.bot_request(
-        f"/channels/{dm_channel['id']}/messages", "POST", json={"content": "Thanks for authorizing the app!"}
+        f"/channels/{dm_channel['id']}/messages", "POST", json={"content": "A new session just started. If you logged in, that's expected."}
     )
 
 
@@ -57,23 +60,36 @@ async def callback():
         discord_bp.discord.revoke()
         return error
 
-    if (user.name == 'halfdane.eth') or ('admin' in current_user_roles):
-        session['admin'] = True
-
-    await welcome_user(user)
-    return redirect(url_for("catch_all"))
-
-
-@discord_bp.route("/session/")
-@requires_authorization
-async def current_session_information():
-    user = await discord_bp.discord.fetch_user()
-    return {
+    session['user'] = {
         'name': user.name,
-        'avatar_url': user.avatar_url
+        'avatar_url': user.avatar_url,
+        'role': current_user_roles[0],
+        'is_admin': 'admin' in current_user_roles,
+        'is_dev': user.name == 'halfdane.eth'
     }
 
-@discord_bp.route("/session/", methods=['DELETE'])
+    await welcome_user(user)
+    return redirect("/session/")
+
+
+@discord_bp.get("/session/")
+@requires_authorization
+async def current_session_information():
+    return session['user']
+
+
+@discord_bp.post("/session/")
+@requires_authorization
+async def adjust_current_session():
+    data = await request.get_json()
+    user = session['user']
+    if user['is_dev']:
+        user['is_admin'] = data['admin']
+    session['user'] = user
+    return user
+
+
+@discord_bp.delete("/session/")
 async def logout():
     if await discord_bp.discord.authorized:
         discord_bp.discord.revoke()

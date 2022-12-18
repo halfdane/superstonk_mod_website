@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 
@@ -13,6 +14,11 @@ from modwebsite.config.database import Database
 
 
 def create(test_config=None):
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[%(name)s]: %(message)s'
+    )
+
     app = Quart(__name__, static_folder='../../client/dist')
     app.modwebsite_config = config(app.env)
 
