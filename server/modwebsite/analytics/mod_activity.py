@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 import urllib
 from datetime import datetime
 
@@ -33,17 +32,15 @@ NON_TEAM = [
 FORMER_MEMBERS = [
     'Bradduck_Flyntmoore',
     'ButtFarm69',
-    'catto_del_fatto',
-    'DeadDevotion',
     'DisproportionateWill',
+    'catto_del_fatto',
     'jsmar18',
-    'mod',
     'sharkbaitlol'
 ]
 
+
 mod_activity_bp = Blueprint('mod_activity', __name__)
 broker = WebsocketsBroadcaster()
-logger = logging.getLogger(__name__)
 
 
 @mod_activity_bp.before_app_serving
@@ -51,49 +48,23 @@ async def before():
     current_app.scheduler.add_job(broker.publish, "cron", second="0-59/10", next_run_time=datetime.now())
 
 
-async def _receive() -> None:
-    while True:
-        message = await websocket.receive()
-        logging.info(f"received a message: {message}")
-        qs = json.loads(message)
-        client_id = qs.get("clientId")
-        combine_non_team = qs.get("combineNonTeam", True)
-        combine_former_team = qs.get("combineFormerTeam", True)
-        combine_current_team = qs.get("combineCurrentTeam", True)
-
-        is_admin = session.get('admin', False)
-        if (combine_non_team or combine_former_team or combine_current_team) and not is_admin:
-            return
-
-        logging.info(f"user is admin")
-        await broker.update(client_id, combine_non_team, combine_former_team, combine_current_team)
-
-
 @mod_activity_bp.websocket('/mod_activity')
 @requires_authorization
 async def mod_activity_endpoint():
-    message = await websocket.receive()
-    qs = json.loads(message)
-    combine_non_team = qs.get("combineNonTeam", True)
-    combine_former_team = qs.get("combineFormerTeam", True)
-    combine_current_team = qs.get("combineCurrentTeam", True)
+    qs = urllib.parse.parse_qs(websocket.query_string.decode())
+
+    combine_non_team = qs.get("combineNonTeam", "true") == ["true"]
+    combine_former_team = qs.get("combineFormerTeam", "true") == ["true"]
+    combine_current_team = qs.get("combineCurrentTeam", "true") == ["true"]
 
     is_admin = session.get('admin', False)
     if (combine_non_team or combine_former_team or combine_current_team) and not is_admin:
         return "Only available for moderators", 403
 
     try:
-        task = asyncio.ensure_future(_receive())
-        async for message in broker.subscribe(publish_mod_activity,
-                                              combine_non_team,
-                                              combine_former_team,
-                                              combine_current_team):
-            logging.info(f"got a message to send: {message[:100]}")
+        async for message in broker.subscribe(publish_mod_activity, combine_non_team, combine_former_team, combine_current_team):
             await websocket.send(message)
     finally:
-        task.cancel()
-        await task
-
         print("Connection is closed")
 
 
@@ -116,7 +87,7 @@ async def publish_mod_activity(combine_non_team, combine_former_team, combine_cu
     #     data: [[day, total], [day, total], [day, total]]
     # }];
     mod_activity = [{'name': mod, 'data': mod_bucket} for mod, mod_bucket in mod_buckets.items()]
-    return {'data': mod_activity}
+    return json.dumps(mod_activity)
 
 
 async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team):
