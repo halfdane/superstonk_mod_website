@@ -15,10 +15,14 @@ function defaultErrorHandler (error) {
 export const useAuthStore = defineStore({
   id: 'auth',
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user')),
+    user: null,
     returnUrl: null,
     authenticationEndpoint: null
   }),
+  mounted () {
+    console.log('auth.js#mounted: calling fetchuser')
+    this.fetchUser()
+  },
   actions: {
     async prepare () {
       session.get('/authentication_endpoint/')
@@ -48,9 +52,11 @@ export const useAuthStore = defineStore({
         isDev: user.is_dev,
         role: user.role
       }
+      console.log('auth.js#setUser: setting user to', user)
     },
     async fetchUser () {
-      session.get('/')
+      console.log('auth.js#fetchUser: sending get')
+      return session.get('/')
         .then((response) => response.data)
         .then((user) => this.setUser(user))
         .catch(defaultErrorHandler)
@@ -65,7 +71,6 @@ export const useAuthStore = defineStore({
       session.delete('/')
         .then(() => {
           this.user = null
-          localStorage.removeItem('user')
           router.push('/account/login')
         })
         .catch(defaultErrorHandler)

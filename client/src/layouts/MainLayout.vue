@@ -74,12 +74,6 @@ const linksList = [
     caption: 'Bans and other activities',
     icon: 'person_search',
     link: '/counter'
-  },
-  {
-    title: 'Current User',
-    caption: 'book library',
-    icon: 'library_books',
-    link: '/user'
   }
 ]
 

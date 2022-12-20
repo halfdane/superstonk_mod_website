@@ -25,9 +25,11 @@ router.beforeEach(async (to) => {
   // redirect to login page if not logged in and trying to access a restricted page
   const publicPages = ['/account/login', '/account/callback']
   const authRequired = !publicPages.includes(to.path)
-  
+
   const authStore = useAuthStore()
-  authStore.fetchUser()
+  if (!authStore.user) {
+    await authStore.fetchUser()
+  }
 
   if (authRequired && !authStore.user) {
     authStore.returnUrl = to.fullPath
