@@ -73,13 +73,13 @@ const linksList = [
     title: 'User Investigation',
     caption: 'Bans and other activities',
     icon: 'person_search',
-    link: '/books'
+    link: '/counter'
   },
   {
-    title: 'Books',
+    title: 'Current User',
     caption: 'book library',
     icon: 'library_books',
-    link: '/books'
+    link: '/user'
   }
 ]
 

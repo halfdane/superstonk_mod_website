@@ -16,7 +16,6 @@
 <script>
 import { VueEcharts } from 'vue3-echarts'
 import { ref } from 'vue'
-import axios from 'axios'
 
 export default {
   components: {
@@ -53,8 +52,8 @@ export default {
     getData () {
       this.$refs.chart.chart.showLoading()
       const defaultSeriesOptions = { type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {} }
-      const path = `http://localhost:5000/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
-      axios.get(path, { withCredentials: true })
+      const path = `/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
+      this.$api.get(path)
         .then((response) => response.data)
         .then((data) => {
           this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))

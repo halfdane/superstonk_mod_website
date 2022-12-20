@@ -1,11 +1,8 @@
 import logging
 import os
-import random
 
-import databases
-from quart import Quart, websocket
+from quart import Quart
 from quart_cors import cors
-from quart_discord import requires_authorization
 
 from modwebsite import auth, analytics
 from modwebsite.books import books_blueprint
@@ -35,10 +32,8 @@ def create(test_config=None):
     app.register_blueprint(books_blueprint)
     app.register_blueprint(analytics.mod_activity_bp)
 
-
     @app.route('/', defaults={'path': 'index.html'})
     @app.route('/<path:path>')
-    @requires_authorization
     async def catch_all(path):
         return await app.send_static_file(path)
 

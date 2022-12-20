@@ -1,9 +1,12 @@
+import accountRoutes from './account.routes'
+
 const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/BooksPage.vue') }]
   },
+  { ...accountRoutes },
   {
     path: '/books',
     component: () => import('layouts/MainLayout.vue'),
@@ -13,6 +16,16 @@ const routes = [
     path: '/analytics',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/AnalyticsPage.vue') }]
+  },
+  {
+    path: '/counter',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/CounterPage.vue') }]
+  },
+  {
+    path: '/user',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/UserPage.vue') }]
   },
 
   // Always leave this as last one,

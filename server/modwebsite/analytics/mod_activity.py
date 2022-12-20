@@ -56,8 +56,10 @@ async def mod_activity_endpoint():
     combine_former_team = request.args.get("combineFormerTeam") == "true"
     combine_current_team = request.args.get("combineCurrentTeam") == "true"
 
+    user_accessible = combine_non_team and combine_former_team and combine_current_team
+
     user = session['user']
-    if (combine_non_team or combine_former_team or combine_current_team) and not user['is_admin']:
+    if not user_accessible and not user['is_admin']:
         return "Only available for moderators", 403
 
     mods, series = await mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team)
