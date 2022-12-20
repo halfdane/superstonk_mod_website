@@ -1,13 +1,15 @@
 import logging
 import os
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from quart import Quart
 from quart_cors import cors
 
 from modwebsite import auth, analytics
 from modwebsite.books import books_blueprint
 from modwebsite.config.configuration_reader import config
-from modwebsite.config.database import Database
+from modwebsite.config.database import database
+from modwebsite.config.reddit_instance import RedditInstance
 
 
 def create(test_config=None):
@@ -26,7 +28,16 @@ def create(test_config=None):
     app.secret_key = app.modwebsite_config['server']['flask_secret_key'].encode()
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = app.modwebsite_config['server']['allow_insecure_transport_for_oauth']
 
-    Database(app)
+    database(app)
+    RedditInstance(app)
+
+    @app.before_serving
+    async def register_scheduler():
+        scheduler_timezone = {}
+        scheduler = AsyncIOScheduler(**scheduler_timezone)
+        scheduler.start()
+        app.scheduler = scheduler
+        logging.getLogger('apscheduler').setLevel(logging.WARN)
 
     app.register_blueprint(auth.discord_bp)
     app.register_blueprint(books_blueprint)

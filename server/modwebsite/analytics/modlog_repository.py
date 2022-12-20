@@ -9,7 +9,7 @@ async def fetch_mods():
 
 
 async def fetch_modlog():
-    day = 60*60*24
+    day = 60 * 60 * 24
     week = day * 7
 
     term = week
@@ -23,3 +23,13 @@ async def fetch_modlog():
         """) as cursor:
         Log = namedtuple("Log", "interval mod total")
         return [Log(row[0], row[1], row[2]) async for row in cursor]
+
+
+async def store_modlog(log):
+    data = (log.id, log.action, log.mod.name, log.details, log.target_body, log.target_title, log.target_permalink,
+            log.target_author, log.created_utc, 0)
+    await current_app.sqlite_db.execute('''
+        INSERT INTO modlog(id, action, mod, details, target_body, target_title, target_permalink, target_author, created_utc, timestamp_db_updated) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+        ON CONFLICT(id) DO NOTHING''', data)
+    await current_app.sqlite_db.commit()

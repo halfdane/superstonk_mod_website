@@ -20,7 +20,10 @@
     "allow_origin": "http://localhost:8080",
     "allow_credentials": true
   },
-  "database": {
-    "connection_url": "some username"
+  "reddit": {
+    "username": "",
+    "password": "",
+    "client_id": "",
+    "client_secret":""
   }
 }

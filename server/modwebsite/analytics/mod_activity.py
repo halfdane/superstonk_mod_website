@@ -1,12 +1,8 @@
-import json
-
-from quart import Blueprint, current_app, request, session, g
+from quart import Blueprint, request, session, current_app
 from quart_discord import requires_authorization
 
-from aiocache import cached, Cache
-from aiocache.serializers import PickleSerializer
-
 from modwebsite.analytics.modlog_repository import fetch_modlog, fetch_mods
+from modwebsite.analytics.modlog_updater import ModlogUpdater
 
 NON_TEAM = [
     'Anti-Evil Operations',
@@ -14,11 +10,13 @@ NON_TEAM = [
     'Automatic_Papaya',
     'AutoModerator',
     'Cardioclaw',
+    'ModCodeofConduct',
     'nakimushinakimushi',
     'reddit',
     'Reddit Legal',
     'Satori-Blue-Shell',
     'Satori-Knee-Arrow',
+    'tweet_widget',
     'Superstonk-Flairy',
     'Superstonk_QV',
     'Superstonk__QV',
@@ -29,13 +27,19 @@ FORMER_MEMBERS = [
     'Bradduck_Flyntmoore',
     'ButtFarm69',
     'DisproportionateWill',
+    'DeadDevotion',
     'catto_del_fatto',
     'jsmar18',
     'sharkbaitlol'
 ]
 
-app = current_app
 mod_activity_bp = Blueprint('mod_activity', __name__)
+
+
+@mod_activity_bp.before_app_serving
+def register() -> None:
+    ModlogUpdater(current_app.reddit, current_app.scheduler)
+
 
 #
 #
@@ -80,7 +84,6 @@ async def mod_activity_endpoint():
     #     data: [[day, total], [day, total], [day, total]]
     # }];
     mod_activity = [{'name': mod, 'data': mod_bucket} for mod, mod_bucket in mod_buckets.items()]
-    print("done")
     return mod_activity
 
 
