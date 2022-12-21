@@ -27,7 +27,6 @@ export default {
     <q-separator inset />
 
     <q-card-section>
-      {{this.authStore.user}}
       <q-btn :href="authStore.authenticationEndpoint" color="primary" icon="discord" label="Log in with Discord"></q-btn>
     </q-card-section>
   </q-card>

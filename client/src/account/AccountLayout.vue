@@ -28,13 +28,13 @@
 
 <script>
 import { useAuthStore } from 'stores/auth'
-import router from 'src/router'
 
 export default {
-  setup () {
+  components: { AlertMessages },
+  mounted () {
     const authStore = useAuthStore()
     if (authStore.user) {
-      router.push('/')
+      this.$router.push('/')
     }
   }
 }

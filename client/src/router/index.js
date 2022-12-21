@@ -39,6 +39,7 @@ export default route(function (/* { store, ssrContext } */) {
 
     const authStore = useAuthStore()
     if (!authStore.user) {
+      console.log('router/index.js#beforeEach: fetching user')
       await authStore.fetchUser()
     }
 

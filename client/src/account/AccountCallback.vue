@@ -16,20 +16,18 @@ export default {
   },
   mounted () {
     this.authStore.callback(this.code, this.state)
-  },
-  unmounted () {
-    window.location.search = ''
   }
 }
 </script>
 
 <template>
   <div class='card m-3'>
-    <h4 class='card-header'>Login</h4>
+    <h4 class='card-header'>Login successful</h4>
     <div class='card-body'>
-      <span>Henlo, I'm back: {{ this.authStore.user }}</span>
-      <span>Code: {{ this.code }}</span>
-      <span>State: {{ this.state }}</span>
+      <span>
+        You'll be redirected automatically. If that doesn't work, please click here:
+        <q-btn href="/" color="primary" icon="discord" label="Back to the main page"></q-btn>
+      </span>
     </div>
   </div>
 </template>

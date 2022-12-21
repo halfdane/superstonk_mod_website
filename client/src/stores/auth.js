@@ -1,4 +1,3 @@
-import router from 'src/router'
 import { useAlertStore } from 'stores/alert.store.js'
 import axios from 'axios'
 import { defineStore } from 'pinia'
@@ -20,7 +19,7 @@ export const useAuthStore = defineStore({
     authenticationEndpoint: null
   }),
   mounted () {
-    console.log('auth.js#mounted: calling fetchuser')
+    console.log('auth.js#mounted: calling fetchUser')
     this.fetchUser()
   },
   actions: {
@@ -37,10 +36,12 @@ export const useAuthStore = defineStore({
         .then((response) => response.data)
         .then((user) => {
           this.user = user
-          localStorage.setItem('user', JSON.stringify(user))
-        })
-        .then(() => {
-          router.push(this.returnUrl || '/')
+          // use window location instead of this.router.push
+          // because discord returns to this url with the parameters
+          // *before* the #, which looks weird.
+          // Since the router ignores everything before the #, this is the
+          // easiest way to clean up the URL
+          window.location = '/'
         })
         .catch(defaultErrorHandler)
     },
@@ -52,7 +53,6 @@ export const useAuthStore = defineStore({
         isDev: user.is_dev,
         role: user.role
       }
-      console.log('auth.js#setUser: setting user to', user)
     },
     async fetchUser () {
       console.log('auth.js#fetchUser: sending get')
@@ -71,7 +71,7 @@ export const useAuthStore = defineStore({
       session.delete('/')
         .then(() => {
           this.user = null
-          router.push('/account/login')
+          this.router.push('/account/login')
         })
         .catch(defaultErrorHandler)
     }

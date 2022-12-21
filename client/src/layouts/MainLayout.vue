@@ -40,6 +40,7 @@
     </q-drawer>
 
     <q-page-container>
+      <AlertMessages></AlertMessages>
       <router-view />
     </q-page-container>
   </q-layout>
@@ -49,6 +50,7 @@
 import { defineComponent, ref } from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
 import UserAvatar from 'components/UserAvatar.vue'
+import AlertMessages from 'components/AlertMessages'
 
 const linksList = [
   {
@@ -81,6 +83,7 @@ export default defineComponent({
   name: 'MainLayout',
 
   components: {
+    AlertMessages,
     UserAvatar,
     EssentialLink
   },
