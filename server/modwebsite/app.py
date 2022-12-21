@@ -18,7 +18,7 @@ def create(test_config=None):
         format='[%(name)s]: %(message)s'
     )
 
-    app = Quart(__name__, static_folder='../../client/dist')
+    app = Quart(__name__, static_folder='../../client/dist/spa', template_folder='../../client/dist/spa')
     app.modwebsite_config = config(app.env)
 
     app = cors(app,
@@ -46,6 +46,7 @@ def create(test_config=None):
     @app.route('/', defaults={'path': 'index.html'})
     @app.route('/<path:path>')
     async def catch_all(path):
+        print(f"fetching {path}")
         return await app.send_static_file(path)
 
     return app

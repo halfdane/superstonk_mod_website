@@ -28,7 +28,7 @@
 
 <script>
 import { useAuthStore } from 'stores/auth'
-import { router } from '../router/index'
+import router from 'src/router'
 
 export default {
   setup () {

@@ -1,4 +1,4 @@
-import { router } from '../router/index'
+import router from 'src/router'
 import { useAlertStore } from 'stores/alert.store.js'
 import axios from 'axios'
 import { defineStore } from 'pinia'
