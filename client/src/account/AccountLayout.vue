@@ -30,7 +30,6 @@
 import { useAuthStore } from 'stores/auth'
 
 export default {
-  components: { AlertMessages },
   mounted () {
     const authStore = useAuthStore()
     if (authStore.user) {
