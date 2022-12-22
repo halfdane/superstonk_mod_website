@@ -10,7 +10,7 @@ class DiscordBlueprint(Blueprint):
     def register(self, app: "Flask", options: dict) -> None:
         super().register(app, options)
         discord_config = app.modwebsite_config['discord']
-        print(discord_config)
+        print(discord_config['discord_client_id'])
         self.discord = DiscordOAuth2Session(
             app,
             client_id=discord_config['discord_client_id'],
