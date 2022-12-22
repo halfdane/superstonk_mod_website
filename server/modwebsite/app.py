@@ -51,3 +51,9 @@ def create(test_config=None):
 
     return app
 
+
+app = create()
+
+
+def run() -> None:
+    app.run()

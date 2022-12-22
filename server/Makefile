@@ -3,15 +3,14 @@ SHELL := /bin/bash
 .PHONY: dev production test clean setup
 # use to run the dev client with the dev server
 dev: setup
-	$(VENV)/quart --env development --app "modwebsite.app:create" run
+	QUART_ENV=development $(VENV)/quart --app "modwebsite.app:create" run
 
 # use to run the static client with the dev server
 prelive: setup
-	$(VENV)/quart --env prelive --debug --app "modwebsite.app:create" run
+	QUART_ENV=prelive $(VENV)/quart --debug --app "modwebsite.app:create" run
 
 production: setup
-	$(VENV)/quart --env live --app "modwebsite.app:create" run
-	#$(VENV)/waitress-serve --call 'scad:create_app'
+	QUART_ENV=live .venv/bin/hypercorn "modwebsite.app:app" --bind 0.0.0.0:3000
 
 test: setup
 	$(VENV)/pytest -vv

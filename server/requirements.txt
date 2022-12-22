@@ -1,3 +1,5 @@
+hypercorn
+
 Quart
 Quart-CORS
 Quart-Discord
@@ -8,6 +10,7 @@ aiosqlite
 asyncpraw
 
 apscheduler
+
 
 pytest
 pytest-asyncio
