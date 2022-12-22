@@ -10,7 +10,7 @@ prelive: setup
 	QUART_ENV=prelive $(VENV)/quart --debug --app "modwebsite.app:create" run
 
 production: setup
-	QUART_ENV=live .venv/bin/hypercorn "modwebsite.app:app" --bind 0.0.0.0:3000
+	QUART_ENV=live $(VENV)/hypercorn "modwebsite.app:app" --bind 0.0.0.0:3000
 
 test: setup
 	$(VENV)/pytest -vv

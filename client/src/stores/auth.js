@@ -2,14 +2,17 @@ import { useAlertStore } from 'stores/alert.store.js'
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-if (process.env.DEV) {
-  console.log('I\'m on a development build')
-  const baseUrl = 'http://localhost:5000'
-} else if (process.env.PROD) {
-  const baseUrl = ''
-  console.log('I\'m on a production build')
+function calculateBaseUrl () {
+  if (process.env.DEV) {
+    console.log('I\'m on a development build')
+    return 'http://localhost:5000'
+  } else if (process.env.PROD) {
+    console.log('I\'m on a production build')
+    return ''
+  }
 }
 
+const baseUrl = calculateBaseUrl()
 
 const session = axios.create({ baseURL: `${baseUrl}/session`, withCredentials: true })
 
