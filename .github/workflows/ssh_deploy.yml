@@ -36,6 +36,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          source: client/*
-          target: "client/dist/spa"
+          strip_components: 1
+          source: client
+          target: "superstonk_mod_website/client/dist/spa"
           rm: true
