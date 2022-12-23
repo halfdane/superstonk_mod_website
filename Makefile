@@ -22,7 +22,7 @@ force_pull:
 
 install:
 	mkdir -p ~/.config/systemd/user/
-	cp scad.service ~/.config/systemd/user/
+	cp superstonk_mod_website.service ~/.config/systemd/user/
 	systemctl --user daemon-reload
 	systemctl --user enable superstonk_mod_website.service
 	systemctl --user start superstonk_mod_website.service
