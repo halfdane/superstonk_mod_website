@@ -12,7 +12,6 @@ $(SUBDIRS):
 dev:
 	(trap 'kill 0' SIGINT; $(MAKE) -C client dev & $(MAKE) -C server dev & wait)
 
-
 bot: force_pull production
 
 force_pull:
@@ -26,6 +25,6 @@ install:
 	systemctl --user daemon-reload
 	systemctl --user enable superstonk_mod_website.service
 	systemctl --user start superstonk_mod_website.service
-	sudo loginctl enable-linger $USER
+	loginctl enable-linger $USER
 
-.PHONY: $(TOPTARGETS) $(SUBDIRS) force_pull bot
+.PHONY: $(TOPTARGETS) $(SUBDIRS) force_pull bot install

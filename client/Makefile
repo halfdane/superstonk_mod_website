@@ -7,9 +7,6 @@ dev: setup
 production: setup
 	npm run build
 
-build: production
-	tar -czvf client.tgz dist
-
 test: setup
 	npm run test
 
