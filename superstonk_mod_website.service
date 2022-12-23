@@ -7,7 +7,7 @@ After=multi-user.target
 [Service]
 # Command to execute when the service is started
 Type=simple
-WorkingDirectory=%h/superstonk_mod_website/
+WorkingDirectory=%h/superstonk_mod_website/server
 ExecStart=/usr/bin/make bot
 Restart=always
 RestartSec=1

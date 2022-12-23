@@ -12,13 +12,6 @@ $(SUBDIRS):
 dev:
 	(trap 'kill 0' SIGINT; $(MAKE) -C client dev & $(MAKE) -C server dev & wait)
 
-bot: force_pull production
-
-force_pull:
-	git fetch --all
-	git reset --hard origin/main
-	git pull --rebase
-
 install:
 	mkdir -p ~/.config/systemd/user/
 	cp superstonk_mod_website.service ~/.config/systemd/user/
