@@ -13,8 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1.0.0
-      - run: cd client; make build
-      - uses: actions/upload-artifact@master
+      - name: create artifact
+        run: cd client; make build
+      - name: store artifact
+        uses: actions/upload-artifact@master
         with:
           name: client.tgz
           path: client.tgz
@@ -22,11 +24,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: live
     steps:
-      - uses: actions/download-artifact@master
+      - name: download artifact
+        uses: actions/download-artifact@master
         with:
           name: client.tgz
           path: client.tgz
-      - uses: appleboy/ssh-action@master
+      - name: scp to target
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
