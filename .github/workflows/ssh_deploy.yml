@@ -30,6 +30,15 @@ jobs:
         with:
           name: client.tgz
           path: client.tgz
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: client.tgz
+          target: "/var/www/html"
+
 #      - name: scp to target
 #        uses: appleboy/ssh-action@master
 #        with:
