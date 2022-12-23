@@ -29,12 +29,12 @@ jobs:
         with:
           name: client.tgz
           path: client.tgz
-      - name: scp to target
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-  #          systemctl --user restart superstonkModerationBot.service
-            echo "That's all folks"
+#      - name: scp to target
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USERNAME }}
+#          key: ${{ secrets.SSH_KEY }}
+#          script: |
+#  #          systemctl --user restart superstonkModerationBot.service
+#            echo "That's all folks"
