@@ -22,6 +22,7 @@ jobs:
           path: client.tgz
   deploy-frontend:
     runs-on: ubuntu-latest
+    needs: build-frontend
     environment: live
     steps:
       - name: download artifact
