@@ -12,7 +12,7 @@ prelive: setup
 production: setup
 	QUART_ENV=live $(VENV)/hypercorn "modwebsite.app:app" --bind 0.0.0.0:3000
 
-bot: production
+bot: force_pull production
 
 force_pull:
 	git fetch --all
