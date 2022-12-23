@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: live
     steps:
-    - name: Deploy to live server via ssh
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-#          systemctl --user restart superstonkModerationBot.service
-          echo "That's all folks"
+      - name: Deploy to live server via ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+  #          systemctl --user restart superstonkModerationBot.service
+            echo "That's all folks"
