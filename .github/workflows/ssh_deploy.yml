@@ -19,7 +19,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: client.tgz
-          path: client.tgz
+          path: client/client.tgz
   deploy-frontend:
     runs-on: ubuntu-latest
     needs: build-frontend
