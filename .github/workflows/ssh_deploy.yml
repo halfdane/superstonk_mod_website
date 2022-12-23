@@ -9,11 +9,20 @@ on:
 #    - cron: '15 */6 * * *'
 
 jobs:
-  build-frontend:
+  deploy-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1.0.0
       - run: cd client; make production
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "client/dist/spa"
+          target: "/var/www/html"
+
 #  deploy-live:
 #    runs-on: ubuntu-latest
 ##    needs: deploy-nonlive
