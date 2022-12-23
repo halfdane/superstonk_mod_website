@@ -25,6 +25,6 @@ install:
 	systemctl --user daemon-reload
 	systemctl --user enable superstonk_mod_website.service
 	systemctl --user start superstonk_mod_website.service
-	loginctl enable-linger $USER
+	loginctl enable-linger ${{ USER }}a
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS) force_pull bot install
