@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { useAuthStore } from 'stores/auth'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -19,10 +20,13 @@ function calculateBaseUrl () {
   }
 }
 
-const api = axios.create({ baseURL: calculateBaseUrl() })
+const api = axios.create({ baseURL: calculateBaseUrl(), withCredentials: true })
 
-export default boot(({ app }) => {
+export default boot(({ app, store }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
+
+  const authStore = useAuthStore(store)
+  authStore.$api = api
 
   app.config.globalProperties.$axios = axios
   // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)

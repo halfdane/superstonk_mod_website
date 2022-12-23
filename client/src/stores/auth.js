@@ -1,20 +1,5 @@
 import { useAlertStore } from 'stores/alert.store.js'
-import axios from 'axios'
 import { defineStore } from 'pinia'
-
-function calculateBaseUrl () {
-  if (process.env.DEV) {
-    console.log('I\'m on a development build')
-    return 'http://localhost:5000'
-  } else if (process.env.PROD) {
-    console.log('I\'m on a production build')
-    return ''
-  }
-}
-
-const baseUrl = calculateBaseUrl()
-
-const session = axios.create({ baseURL: `${baseUrl}/session`, withCredentials: true })
 
 function defaultErrorHandler (error) {
   const alertStore = useAlertStore()
@@ -34,7 +19,7 @@ export const useAuthStore = defineStore({
   },
   actions: {
     async prepare () {
-      session.get('/authentication_endpoint/')
+      this.$api.get('/session/authentication_endpoint/')
         .then((response) => response.data)
         .then((authData) => {
           this.authenticationEndpoint = authData.authentication_endpoint
@@ -42,7 +27,7 @@ export const useAuthStore = defineStore({
         .catch(defaultErrorHandler)
     },
     async callback (code, state) {
-      session.get('/callback/', { params: { code, state } })
+      this.$api.get('/session/callback/', { params: { code, state } })
         .then((response) => response.data)
         .then((user) => {
           this.user = user
@@ -66,19 +51,19 @@ export const useAuthStore = defineStore({
     },
     async fetchUser () {
       console.log('auth.js#fetchUser: sending get')
-      return session.get('/')
+      return this.$api.get('/session')
         .then((response) => response.data)
         .then((user) => this.setUser(user))
         .catch(defaultErrorHandler)
     },
     async setAdminMode (admin) {
-      session.post('/', { admin })
+      this.$api.post('/session/', { admin })
         .then((response) => response.data)
         .then((user) => this.setUser(user))
         .catch(defaultErrorHandler)
     },
     logout () {
-      session.delete('/')
+      this.$api.delete('/session/')
         .then(() => {
           this.user = null
           this.router.push('/account/login')

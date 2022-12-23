@@ -85,18 +85,6 @@
 import AlertSuccess from '../components/AlertSuccess'
 import { ref } from 'vue'
 
-function calculateBaseUrl () {
-  if (process.env.DEV) {
-    console.log('I\'m on a development build')
-    return 'http://localhost:5000'
-  } else if (process.env.PROD) {
-    console.log('I\'m on a production build')
-    return ''
-  }
-}
-
-const baseUrl = calculateBaseUrl()
-
 export default {
   setup () {
     return {
@@ -125,9 +113,8 @@ export default {
   },
   methods: {
     getBooks () {
-      const path = `${baseUrl}/books`
-      fetch(path)
-        .then((response) => response.json())
+      this.$api.get('/books')
+        .then((response) => response.data)
         .then((data) => {
           this.books = data.books
         })
@@ -137,15 +124,7 @@ export default {
         })
     },
     addBook (payload) {
-      const path = `${baseUrl}/books`
-      const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-      fetch(path, options)
+      this.$api.post('/books', payload)
         .then(() => {
           this.getBooks()
           this.message = 'Book added!'
@@ -157,12 +136,10 @@ export default {
         })
     },
     removeBook (bookID) {
-      const path = `${baseUrl}/books/${bookID}`
-      fetch(path, { method: 'DELETE' })
+      this.$api.delete(`/books/${bookID}`)
         .then(() => {
           this.getBooks()
           this.message = 'Book removed!'
-          this.showMessage = true
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -174,17 +151,8 @@ export default {
       this.removeBook(book.id)
     },
     updateBook (payload, bookID) {
-      const path = `${baseUrl}/books/${bookID}`
-      const options = {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-      console.log(payload)
-      console.log(options)
-      fetch(path, options)
+      const path = `/books/${bookID}`
+      this.$api.put(path, payload)
         .then(() => {
           this.getBooks()
           this.message = 'Book updated!'
