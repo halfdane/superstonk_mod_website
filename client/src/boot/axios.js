@@ -21,6 +21,15 @@ function calculateBaseUrl () {
 }
 
 const api = axios.create({ baseURL: calculateBaseUrl(), withCredentials: true })
+api.interceptors.request.use(function(config) {
+  // change the url scheme from http to https
+  if (process.env.PROD) {
+    config.url = config.url.replace('http://', 'https://')
+  }
+
+  return config
+})
+
 
 export default boot(({ app, store }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
