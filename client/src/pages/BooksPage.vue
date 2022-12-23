@@ -85,6 +85,18 @@
 import AlertSuccess from '../components/AlertSuccess'
 import { ref } from 'vue'
 
+function calculateBaseUrl () {
+  if (process.env.DEV) {
+    console.log('I\'m on a development build')
+    return 'http://localhost:5000'
+  } else if (process.env.PROD) {
+    console.log('I\'m on a production build')
+    return ''
+  }
+}
+
+const baseUrl = calculateBaseUrl()
+
 export default {
   setup () {
     return {
@@ -113,7 +125,7 @@ export default {
   },
   methods: {
     getBooks () {
-      const path = 'http://localhost:5000/books'
+      const path = `${baseUrl}/books`
       fetch(path)
         .then((response) => response.json())
         .then((data) => {
@@ -125,7 +137,7 @@ export default {
         })
     },
     addBook (payload) {
-      const path = 'http://localhost:5000/books'
+      const path = `${baseUrl}/books`
       const options = {
         method: 'POST',
         headers: {
@@ -145,7 +157,7 @@ export default {
         })
     },
     removeBook (bookID) {
-      const path = `http://localhost:5000/books/${bookID}`
+      const path = `${baseUrl}/books/${bookID}`
       fetch(path, { method: 'DELETE' })
         .then(() => {
           this.getBooks()
@@ -162,7 +174,7 @@ export default {
       this.removeBook(book.id)
     },
     updateBook (payload, bookID) {
-      const path = `http://localhost:5000/books/${bookID}`
+      const path = `${baseUrl}/books/${bookID}`
       const options = {
         method: 'PUT',
         headers: {

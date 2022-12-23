@@ -9,7 +9,17 @@ import axios from 'axios'
 // for each client)
 axios.defaults.withCredentials = true
 
-const api = axios.create({ baseURL: 'http://localhost:5000//' })
+function calculateBaseUrl () {
+  if (process.env.DEV) {
+    console.log('I\'m on a development build')
+    return 'http://localhost:5000'
+  } else if (process.env.PROD) {
+    console.log('I\'m on a production build')
+    return ''
+  }
+}
+
+const api = axios.create({ baseURL: calculateBaseUrl() })
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
