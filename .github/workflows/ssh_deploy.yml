@@ -30,6 +30,16 @@ jobs:
         with:
           name: client.tgz
           path: client.tgz
+      - name: debug
+        run: ls ; ls -la
+      - name: ssh to target
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "That's all folks"
       - name: copy file via ssh password
         uses: appleboy/scp-action@master
         with:
@@ -38,13 +48,3 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: client.tgz
           target: "/var/www/html"
-
-#      - name: scp to target
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USERNAME }}
-#          key: ${{ secrets.SSH_KEY }}
-#          script: |
-#  #          systemctl --user restart superstonkModerationBot.service
-#            echo "That's all folks"
