@@ -26,8 +26,7 @@ jobs:
         with:
           name: client.tgz
           path: client.tgz
-      - name: Deploy to live server via ssh
-        uses: appleboy/ssh-action@master
+      - uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
