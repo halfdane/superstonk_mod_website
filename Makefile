@@ -24,8 +24,8 @@ install:
 	mkdir -p ~/.config/systemd/user/
 	cp scad.service ~/.config/systemd/user/
 	systemctl --user daemon-reload
-	systemctl --user enable scad.service
-	systemctl --user start scad.service
+	systemctl --user enable superstonk_mod_website.service
+	systemctl --user start superstonk_mod_website.service
 	sudo loginctl enable-linger $USER
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS) force_pull bot
