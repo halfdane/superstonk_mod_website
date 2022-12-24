@@ -24,6 +24,8 @@ const api = axios.create({ baseURL: calculateBaseUrl(), withCredentials: true })
 api.interceptors.request.use(function(config) {
   // change the url scheme from http to https
   if (process.env.PROD) {
+    console.log(`here's the request config: ${config}`)
+    console.log(`replacing http with  https in ${config.url}`)
     config.url = config.url.replace('http://', 'https://')
   }
 
