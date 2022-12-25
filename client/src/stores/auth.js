@@ -51,7 +51,7 @@ export const useAuthStore = defineStore({
     },
     async fetchUser () {
       console.log('auth.js#fetchUser: sending get')
-      return this.$api.get('/session')
+      return this.$api.get('/session/')
         .then((response) => response.data)
         .then((user) => this.setUser(user))
         .catch(defaultErrorHandler)

@@ -109,3 +109,4 @@ async def logout():
 @discord_bp.app_errorhandler(Unauthorized)
 async def redirect_unauthorized(e):
     return redirect(url_for("discord_blueprint.login"))
+
