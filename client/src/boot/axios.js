@@ -13,14 +13,17 @@ axios.defaults.withCredentials = true
 function calculateBaseUrl () {
   if (process.env.DEV) {
     console.log('I\'m on a development build')
-    return 'http://localhost:5000'
+    return { baseURL: 'http://localhost:5000' }
   } else if (process.env.PROD) {
     console.log('I\'m on a production build')
-    return ''
+    return {}
   }
 }
 
-const api = axios.create({ baseURL: calculateBaseUrl(), withCredentials: true })
+const options = { ...calculateBaseUrl(), ...{ withCredentials: true } }
+console.log(options)
+const api = axios.create(options)
+
 api.interceptors.request.use(function (config) {
   // change the url scheme from http to https
   if (process.env.PROD) {
