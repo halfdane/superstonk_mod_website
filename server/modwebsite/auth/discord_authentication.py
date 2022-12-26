@@ -24,23 +24,29 @@ discord_bp = DiscordBlueprint('discord_blueprint', __name__, url_prefix="/sessio
 logger = logging.getLogger(__name__)
 
 
-async def fetch_roles_from_api(guild_id):
+async def fetch_user_roles_from_api(guild_id):
     route = f"/users/@me/guilds/{guild_id}/member"
     payload = await discord_bp.discord.request(route)
     return [int(v) for v in payload.get("roles", [])]
 
 
+async def fetch_guild_roles_from_api(guild_id):
+    guild = await current_app.discord_client.fetch_guild(f"{guild_id}")
+    return {role.id: role.name for role in guild.roles}
+
+
 async def welcome_user(user):
     dm_channel = await discord_bp.discord.bot_request("/users/@me/channels", "POST", json={"recipient_id": user.id})
     return await discord_bp.discord.bot_request(
-        f"/channels/{dm_channel['id']}/messages", "POST", json={"content": "A new session just started. If you logged in, that's expected."}
+        f"/channels/{dm_channel['id']}/messages", "POST",
+        json={"content": "A new session just started. If you logged in, that's expected."}
     )
 
 
 @discord_bp.get("/authentication_endpoint/")
 async def authentication_endpoint():
-    redirect = await discord_bp.discord.create_session(scope=["guilds.members.read"])
-    return {'authentication_endpoint': redirect.location}
+    authentication_redirect = await discord_bp.discord.create_session(scope=["guilds", "identify", "connections"])
+    return {'authentication_endpoint': authentication_redirect.location}
 
 
 @discord_bp.get("/callback/")
@@ -54,12 +60,14 @@ async def callback():
     roles_with_access_allowed = [v for v in mod_guild["accessing_roles"].values()]
 
     logger.info("Fetching roles")
-    roles_current_user_has = await fetch_roles_from_api(mod_guild['guild_id'])
+    user_roles = await fetch_user_roles_from_api(mod_guild['guild_id'])
+    guild_roles = await fetch_guild_roles_from_api(mod_guild['guild_id'])
+    accessing_guild_roles = {guild_roles[v]: v for k, v in mod_guild["accessing_roles"].items()}
+    current_user_roles = [k for k, v in accessing_guild_roles.items() if v in user_roles]
 
-    current_user_roles = [k for k, v in mod_guild["accessing_roles"].items() if v in roles_current_user_has]
     session['discord_roles'] = current_user_roles
     if len(current_user_roles) == 0:
-        error = f"The user {user.name} has the roles {roles_current_user_has} " \
+        error = f"The user {user.name} has the roles {user_roles} " \
                 f"in the guild {mod_guild['guild_id']} " \
                 f"but needs one of these roles: {roles_with_access_allowed}!<br>" \
                 f"<a href='/'>Try again!</a>"
@@ -67,9 +75,15 @@ async def callback():
         discord_bp.discord.revoke()
         logger.error(error)
         return error
+    logger.info(f"relevant roles: {current_user_roles}")
+
+    full_user = await current_app.discord_client.fetch_user(f"{user.id}")
+    print(full_user)
 
     session['user'] = {
+        'id': user.id,
         'name': user.name,
+        'discriminator': user.discriminator,
         'avatar_url': user.avatar_url,
         'role': current_user_roles[0],
         'is_admin': 'admin' in current_user_roles,
@@ -108,5 +122,5 @@ async def logout():
 
 @discord_bp.app_errorhandler(Unauthorized)
 async def redirect_unauthorized(e):
-    return redirect(url_for("discord_blueprint.login"))
+    return "Unauthorized", 403
 
