@@ -24,18 +24,6 @@ const options = { ...calculateBaseUrl(), ...{ withCredentials: true } }
 console.log(options)
 const api = axios.create(options)
 
-api.interceptors.request.use(function (config) {
-  // change the url scheme from http to https
-  if (process.env.PROD) {
-    console.log('this url:', window.location)
-    console.log('here\'s the request config:', config)
-    console.log(`replacing http with  https in ${config.url}`)
-    config.url = config.url.replace('http://', 'https://')
-  }
-
-  return config
-})
-
 export default boot(({ app, store }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 

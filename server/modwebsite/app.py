@@ -9,6 +9,7 @@ from modwebsite import auth, analytics
 from modwebsite.books import books_blueprint
 from modwebsite.config.configuration_reader import config
 from modwebsite.config.database import database
+from modwebsite.config.discord_instance import DiscordInstance
 from modwebsite.config.reddit_instance import RedditInstance
 
 
@@ -30,6 +31,7 @@ def create(test_config=None):
 
     database(app)
     RedditInstance(app)
+    DiscordInstance(app)
 
     @app.before_serving
     async def register_scheduler():
