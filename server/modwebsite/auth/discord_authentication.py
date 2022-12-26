@@ -35,6 +35,12 @@ async def fetch_guild_roles_from_api(guild_id):
     return {role.id: role.name for role in guild.roles}
 
 
+async def fetch_reddit_username():
+    route = f"/users/@me/connections"
+    payload = await discord_bp.discord.request(route)
+    return [c['name'] for c in payload if c['type'] == 'reddit'][0]
+
+
 async def welcome_user(user):
     dm_channel = await discord_bp.discord.bot_request("/users/@me/channels", "POST", json={"recipient_id": user.id})
     return await discord_bp.discord.bot_request(
@@ -77,8 +83,7 @@ async def callback():
         return error
     logger.info(f"relevant roles: {current_user_roles}")
 
-    full_user = await current_app.discord_client.fetch_user(f"{user.id}")
-    print(full_user)
+    reddit_username = await fetch_reddit_username()
 
     session['user'] = {
         'id': user.id,
@@ -87,10 +92,10 @@ async def callback():
         'avatar_url': user.avatar_url,
         'role': current_user_roles[0],
         'is_admin': 'admin' in current_user_roles,
-        'is_dev': user.name == 'halfdane.eth'
+        'is_dev': user.name == 'halfdane.eth',
+        'reddit_username': reddit_username
     }
     logger.info(f"User was successfully logged in and stored in the session: {session['user']}")
-    logger.info(f"Authorized?: {await current_app.discord.authorized}")
     await welcome_user(user)
     return session['user']
 
