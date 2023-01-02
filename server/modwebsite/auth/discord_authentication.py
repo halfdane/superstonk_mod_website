@@ -4,24 +4,20 @@ from quart import Blueprint, redirect, url_for, current_app, session, request
 from quart_discord import DiscordOAuth2Session, Unauthorized, requires_authorization
 
 
-class DiscordBlueprint(Blueprint):
-    discord = None
-
-    def register(self, app: "Flask", options: dict) -> None:
-        super().register(app, options)
-        discord_config = app.modwebsite_config['discord']
-        print(discord_config['discord_client_id'])
-        self.discord = DiscordOAuth2Session(
-            app,
-            client_id=discord_config['discord_client_id'],
-            client_secret=discord_config['discord_client_secret'],
-            redirect_uri=discord_config['discord_redirect_uri'],
-            bot_token=discord_config['discord_bot_token']
-        )
-
-
-discord_bp = DiscordBlueprint('discord_blueprint', __name__, url_prefix="/session")
+discord_bp = Blueprint('discord_blueprint', __name__, url_prefix="/session")
 logger = logging.getLogger(__name__)
+
+
+@discord_bp.before_app_serving
+async def create_discord_oauth2_session():
+    discord_config = current_app.modwebsite_config['discord']
+    discord_bp.discord = DiscordOAuth2Session(
+        current_app,
+        client_id=discord_config['discord_client_id'],
+        client_secret=discord_config['discord_client_secret'],
+        redirect_uri=discord_config['discord_redirect_uri'],
+        bot_token=discord_config['discord_bot_token']
+    )
 
 
 async def fetch_user_roles_from_api(guild_id):
