@@ -4,6 +4,7 @@ client/dist
 
 server/modlog.db
 modlog.csv
+superstonk_mod_website.code-workspace
 
 server/config.*.json
 

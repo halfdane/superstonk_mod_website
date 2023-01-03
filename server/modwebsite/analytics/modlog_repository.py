@@ -3,12 +3,15 @@ from collections import namedtuple
 from quart import current_app
 
 
+MOD_ACTIVITIES = ['approvelink', 'approvecomment', 'removelink', 'removecomment', 'spamlink', 'spamcomment', 'banuser', 'addcontributor']
+
+
 async def fetch_mods():
     async with current_app.sqlite_db.execute("select distinct mod from modlog") as cursor:
         return [row[0] async for row in cursor]
 
 
-async def fetch_modlog():
+async def fetch_modlog_old():
     day = 60 * 60 * 24
     week = day * 7
 
@@ -23,6 +26,23 @@ async def fetch_modlog():
         """) as cursor:
         Log = namedtuple("Log", "interval mod total")
         return [Log(row[0], row[1], row[2]) async for row in cursor]
+
+
+async def fetch_modlog():
+    day = 60 * 60 * 24
+    week = day * 7
+
+    term = week
+    term_times = term * 1_000
+    sql = f"""
+            select (created_utc / {term}) * {term_times} as day, mod, action, count(*) as count from modlog
+            where 
+            action in ({", ".join(["'"+activity+"'" for activity in MOD_ACTIVITIES])})
+            group by mod, action, day
+            order by day, mod
+        """
+    async with current_app.sqlite_db.execute(sql) as cursor:
+        return [row async for row in cursor]
 
 
 async def store_modlog(log):

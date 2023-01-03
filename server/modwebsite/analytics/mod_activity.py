@@ -1,8 +1,8 @@
+from modwebsite.analytics.modlog_updater import ModlogUpdater
 from quart import Blueprint, request, session, current_app
 from quart_discord import requires_authorization
 
-from modwebsite.analytics.modlog_repository import fetch_modlog, fetch_mods
-from modwebsite.analytics.modlog_updater import ModlogUpdater
+from modwebsite.analytics.modlog_repository import MOD_ACTIVITIES, fetch_modlog, fetch_modlog_old, fetch_mods
 
 NON_TEAM = [
     'Anti-Evil Operations',
@@ -23,15 +23,6 @@ NON_TEAM = [
     'zwakenberg',
 ]
 
-FORMER_MEMBERS = [
-    'Bradduck_Flyntmoore',
-    'ButtFarm69',
-    'DisproportionateWill',
-    'DeadDevotion',
-    'catto_del_fatto',
-    'jsmar18',
-    'sharkbaitlol'
-]
 
 mod_activity_bp = Blueprint('mod_activity', __name__)
 
@@ -41,21 +32,61 @@ def register() -> None:
     ModlogUpdater(current_app.reddit, current_app.scheduler)
 
 
-#
-#
-# @mod_activity_bp.websocket('/mod_activity')
-# @requires_authorization
-# async def mod_activity_endpoint():
-#     qs = urllib.parse.parse_qs(websocket.query_string.decode())
-#
-#     combine_non_team = qs.get("combineNonTeam", "true") == "true"
-#     combine_former_team = qs.get("combineFormerTeam", "true") == "true"
-#     combine_current_team = qs.get("combineCurrentTeam", "true") == "true"
-
-
 @mod_activity_bp.route('/mod_activity')
 @requires_authorization
 async def mod_activity_endpoint():
+    mods, source = await mods_and_buckets_from_db()
+
+    superstonk_subreddit = await current_app.reddit.subreddit('superstonk')
+    superstonk_moderators = [m.name async for m in superstonk_subreddit.moderator]
+
+    return {
+        'dataset': {'source': source},
+        'moderators': superstonk_moderators,
+        'nonTeam': NON_TEAM 
+        }
+
+
+async def mods_and_buckets_from_db():
+    mod_rows = await fetch_mods()
+
+    mods = [mod for mod in mod_rows]
+    mods = sorted(mods, key=str.casefold)
+
+    print("fetching logs")
+    db_rows = await fetch_modlog()
+    # day, mod, action, count
+
+    # fill missing values (probably mod wasn't active on a given day) with 0
+    buckets = {}
+    for row in db_rows:
+        timestamp_ = row[0]
+        mod_activity_on_day = {mod: {activity: 0 for activity in MOD_ACTIVITIES} for mod in mods}
+        day_bucket = buckets.get(timestamp_, mod_activity_on_day)
+        day_bucket[row[1]][row[2]] += row[3]
+        buckets[timestamp_] = day_bucket
+
+    result = []
+    for day, mod_activity_on_day in buckets.items():
+        for mod, act in mod_activity_on_day.items():
+            for activity, count in act.items():
+                result.append([day, mod, activity, count])
+
+    print(result[:100])
+
+    # source: [
+    #     [1649894400000, 'AutoModerator', 'removecomment', 237],
+    #     [1649894400000, 'AutoModerator', 'removelink', 45]
+    # ]
+
+
+    return mods, result
+
+
+
+@mod_activity_bp.route('/mod_activity_old')
+@requires_authorization
+async def mod_activity_endpoint_old():
     combine_non_team = request.args.get("combineNonTeam") == "true"
     combine_former_team = request.args.get("combineFormerTeam") == "true"
     combine_current_team = request.args.get("combineCurrentTeam") == "true"
@@ -66,7 +97,7 @@ async def mod_activity_endpoint():
     if not user_accessible and not user['is_admin']:
         return "Only available for moderators", 403
 
-    mods, series = await mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team)
+    mods, series = await mods_and_buckets_from_db_old(combine_non_team, combine_former_team, combine_current_team)
 
     # {
     #   mod1: [[day, total], [day, total], [day, total]]
@@ -87,7 +118,7 @@ async def mod_activity_endpoint():
     return mod_activity
 
 
-async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combine_current_team):
+async def mods_and_buckets_from_db_old(combine_non_team, combine_former_team, combine_current_team):
     mod_rows = await fetch_mods()
 
     def combine_mod(mod):
@@ -104,7 +135,7 @@ async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combin
     if combine_former_team:
         mods = ['FORMER-MODS'] + mods
 
-    db_rows = await fetch_modlog()
+    db_rows = await fetch_modlog_old()
 
     # {"day": 1666044000000.0, "mod": "AutoModerator", "cnt": 468},
     #       {
@@ -138,3 +169,6 @@ async def mods_and_buckets_from_db(combine_non_team, combine_former_team, combin
     #       'mod2': 21,
     #   }
     return mods, buckets
+
+
+

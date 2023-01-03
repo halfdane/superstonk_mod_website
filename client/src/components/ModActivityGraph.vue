@@ -52,11 +52,51 @@ export default {
     getData () {
       this.$refs.chart.chart.showLoading()
       const defaultSeriesOptions = { type: 'line', stack: 'Total', smooth: false, symbol: 'none', areaStyle: {} }
-      const path = `/mod_activity?combineNonTeam=${this.combineNonTeam}&combineFormerTeam=${this.combineFormerTeam}&combineCurrentTeam=${this.combineCurrentTeam}`
-      this.$api.get(path)
+      this.$api.get('/mod_activity')
         .then((response) => response.data)
         .then((data) => {
-          this.graph = data.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
+          console.log(data)
+          const moderators = data.moderators
+          const nonTeam = data.nonTeam
+          const dataset = data.dataset
+          const source = dataset.source
+          // day, mod, action, count
+          // [ 1649894400000, "AutoModerator", "removecomment", 237 ]
+
+          const accumulatedActivity = source.reduce((acc, cur) => {
+            let mod = cur[1]
+            if (this.combineFormerTeam && (!moderators.includes(mod)) && (!nonTeam.includes(mod))) {
+              mod = 'EX-MODS'
+            } else if (this.combineNonTeam && nonTeam.includes(mod)) {
+              mod = 'NON-TEAM'
+            } else if (this.combineCurrentTeam) {
+              mod = 'MODERATORS'
+            }
+            acc[mod] = acc[mod] || {}
+            acc[mod][cur[0]] = acc[mod][cur[0]] || 0
+            acc[mod][cur[0]] += cur[3]
+            return acc
+          }, [])
+          // [half_dane: {
+          //     "1649894400000": 84,
+          //     "1650499200000": 234,
+          // }]
+          const series = []
+          Object.keys(accumulatedActivity).forEach((name) => {
+            data = []
+            Object.keys(accumulatedActivity[name]).forEach((day) => {
+              data.push([parseInt(day), accumulatedActivity[name][day]])
+            })
+
+            series.push(Object.assign({}, defaultSeriesOptions, { name, data }))
+          })
+
+          // [{
+          //     name: 'mod name ',
+          //     data: [[day, total], [day, total], [day, total]]
+          // }]
+
+          this.graph = series.map(singleModSeries => Object.assign({}, defaultSeriesOptions, singleModSeries))
           console.log(this.graph)
           this.$refs.chart.chart.hideLoading()
         })
