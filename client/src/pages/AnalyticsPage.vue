@@ -4,7 +4,7 @@
   </q-page>
 </template>
 <script>
-import ModActivityGraph from '../components/ModActivityGraph'
+import ModActivityGraph from '../modactivity/ModActivityGraph'
 
 export default {
   components: { ModActivityGraph }

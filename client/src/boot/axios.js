@@ -1,6 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 import { useAuthStore } from 'stores/auth'
+import { useModactivityStore } from 'src/modactivity/modactivity.store'
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -21,7 +22,6 @@ function calculateBaseUrl () {
 }
 
 const options = { ...calculateBaseUrl(), ...{ withCredentials: true } }
-console.log(options)
 const api = axios.create(options)
 
 export default boot(({ app, store }) => {
@@ -29,6 +29,9 @@ export default boot(({ app, store }) => {
 
   const authStore = useAuthStore(store)
   authStore.$api = api
+
+  const modactivityStore = useModactivityStore(store)
+  modactivityStore.$api = api
 
   app.config.globalProperties.$axios = axios
   // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)

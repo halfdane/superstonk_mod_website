@@ -13,10 +13,6 @@ export const useAuthStore = defineStore({
     returnUrl: null,
     authenticationEndpoint: null
   }),
-  mounted () {
-    console.log('auth.js#mounted: calling fetchUser')
-    this.fetchUser()
-  },
   actions: {
     async prepare () {
       this.$api.get('/session/authentication_endpoint/')
