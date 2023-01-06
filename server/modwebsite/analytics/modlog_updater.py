@@ -13,7 +13,7 @@ class ModlogUpdater:
         self.logger = logging.getLogger(__name__)
         self.reddit = reddit
         scheduler.add_job(self.setup)
-        # scheduler.add_job(self.fetch_all, next_run_time=datetime.now() + timedelta(seconds=5))
+        scheduler.add_job(self.fetch_all, next_run_time=datetime.now() + timedelta(seconds=5))
         scheduler.add_job(self.fetch_modlog_data, 'interval', seconds=10)
 
     async def setup(self):
