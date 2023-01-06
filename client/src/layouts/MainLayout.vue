@@ -54,28 +54,10 @@ import AlertMessages from 'components/AlertMessages'
 
 const linksList = [
   {
-    title: 'Home',
-    caption: 'Start here',
-    icon: 'home',
-    link: '/'
-  },
-  {
     title: 'Analytics',
     caption: 'Pretty Graphics',
     icon: 'query_stats',
     link: '/analytics'
-  },
-  {
-    title: 'ModQueue',
-    caption: 'Work to do',
-    icon: 'gpp_maybe',
-    link: '/books'
-  },
-  {
-    title: 'User Investigation',
-    caption: 'Bans and other activities',
-    icon: 'person_search',
-    link: '/counter'
   }
 ]
 
