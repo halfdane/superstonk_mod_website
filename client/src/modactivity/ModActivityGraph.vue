@@ -61,7 +61,7 @@ export default {
         smooth: false,
         symbol: "none",
         areaStyle: {},
-      }
+      },
     };
   },
   watch: {
@@ -97,7 +97,7 @@ export default {
       const accumulatedActivity = source.reduce((acc, cur) => {
         const date = cur[0];
         let mod = cur[1];
-        
+
         if (this.combineFormerTeam) {
           acc["EX-MODS"] = acc["EX-MODS"] || {};
         }
@@ -114,9 +114,15 @@ export default {
           !this.modactivityStore.nonTeam.includes(mod)
         ) {
           mod = "EX-MODS";
-        } else if (this.combineNonTeam && this.modactivityStore.nonTeam.includes(mod)) {
+        } else if (
+          this.combineNonTeam &&
+          this.modactivityStore.nonTeam.includes(mod)
+        ) {
           mod = "NON-TEAM";
-        } else if (this.combineCurrentTeam && this.modactivityStore.moderators.includes(mod) ) {
+        } else if (
+          this.combineCurrentTeam &&
+          this.modactivityStore.moderators.includes(mod)
+        ) {
           mod = "MODERATORS";
         }
         acc[mod] = acc[mod] || {};
@@ -129,7 +135,6 @@ export default {
       //     "1650499200000": 234,
       // }]
 
-
       const series = [];
       Object.keys(accumulatedActivity).forEach((name) => {
         const data = [];
@@ -137,14 +142,16 @@ export default {
           data.push([parseInt(day), accumulatedActivity[name][day]]);
         });
 
-        series.push(Object.assign({}, this.defaultSeriesOptions, { name, data }));
+        series.push(
+          Object.assign({}, this.defaultSeriesOptions, { name, data })
+        );
       });
 
       // [{
       //     name: 'mod name ',
       //     data: [[day, total], [day, total], [day, total]]
       // }]
-      this.graph = series
+      this.graph = series;
     },
   },
   mounted() {
@@ -165,13 +172,17 @@ export default {
           tooltip: {
             trigger: "axis",
             formatter: function (params) {
-              const string = params
-                .filter((param) => param.value[1] !== 0)
-                .map(
-                  (param) =>
-                    `${param.marker} ${param.seriesName} ${param.value[1]}`
-                )
-                .join("<br />");
+              const string =
+                "<b>" +
+                new Date(params[0].value[0]).toLocaleDateString() +
+                "</b><br />" +
+                params
+                  .filter((param) => param.value[1] !== 0)
+                  .map((param) => {
+                    const s = `${param.marker} ${param.seriesName} ${param.value[1]}`;
+                    return s;
+                  })
+                  .join("<br />");
               return string;
             },
             position: function (pt) {
