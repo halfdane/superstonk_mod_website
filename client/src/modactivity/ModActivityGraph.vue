@@ -6,6 +6,11 @@
     ref="chart"
   />
   <q-form class="q-gutter-md">
+    <q-toggle v-model="accWeekly" label="Accumulate weekly/daily">
+      <q-tooltip>Accumulate for every day or every week</q-tooltip>
+    </q-toggle>
+  </q-form>
+  <q-form class="q-gutter-md">
     <q-toggle v-model="combineNonTeam" label="Combine non-team accounts">
       <q-tooltip
         >Non-team accounts: bots, reddit's anti-evil team etc.</q-tooltip
@@ -40,6 +45,7 @@ export default {
     const combineNonTeam = ref(true);
     const combineFormerTeam = ref(true);
     const combineCurrentTeam = ref(true);
+    const accWeekly = ref(true);
 
     const modactivityStore = useModactivityStore();
     const { loading } = storeToRefs(modactivityStore);
@@ -48,6 +54,7 @@ export default {
       combineNonTeam,
       combineFormerTeam,
       combineCurrentTeam,
+      accWeekly,
       modactivityStore,
       loading,
     };
@@ -58,7 +65,7 @@ export default {
       defaultSeriesOptions: {
         type: "line",
         stack: "Total",
-        smooth: false,
+        smooth: 0.2,
         symbol: "none",
         areaStyle: {},
       },
@@ -66,7 +73,6 @@ export default {
   },
   watch: {
     loading() {
-      console.log("Loading changed: ", this.loading);
       if (this.loading) {
         this.$refs.chart.chart.showLoading();
       } else {
@@ -83,6 +89,9 @@ export default {
     combineCurrentTeam() {
       this.updateGraphData();
     },
+    accWeekly() {
+      this.updateGraphData();
+    }
   },
   methods: {
     updateGraphData() {
@@ -95,7 +104,16 @@ export default {
       const source = this.modactivityStore.activities;
 
       const accumulatedActivity = source.reduce((acc, cur) => {
-        const date = cur[0];
+        let date = cur[0];
+
+        if (this.accWeekly) {
+          const now = new Date(date)
+          var firstDayOfWeek = new Date(
+            now.setDate(now.getDate() - now.getDay() + 1)
+          );
+          date = firstDayOfWeek.valueOf();
+        }
+
         let mod = cur[1];
 
         if (this.combineFormerTeam) {

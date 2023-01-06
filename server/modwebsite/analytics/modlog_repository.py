@@ -30,9 +30,8 @@ async def fetch_modlog_old():
 
 async def fetch_modlog():
     day = 60 * 60 * 24
-    week = day * 7
 
-    term = week
+    term = day
     term_times = term * 1_000
     sql = f"""
             select (created_utc / {term}) * {term_times} as day, mod, action, count(*) as count from modlog
